@@ -319,6 +319,8 @@ border: 1.5px solid #333; color: #888; background: #1a1a1a;
 body.light { background: #f0f0f0; color: #111; }
 body.light .app-header { background: linear-gradient(135deg, #BB0000 0%, #ddd 40%, #ddd 60%, #00274C 100%); border-bottom-color: #ccc; }
 body.light .score-banner { background: #e0e0e0; border-bottom-color: #ccc; }
+body.light .banner-team.oh { background: linear-gradient(135deg, #BB0000 0%, #8B0000 100%); }
+body.light .banner-team.mi { background: linear-gradient(135deg, #001a33 0%, #00274C 100%); }
 body.light .banner-divider { background: #e0e0e0; color: #555; }
 body.light .progress-bar-wrap { background: #ccc; }
 body.light .points-table { background: #fff; border-color: #ccc; }
@@ -327,10 +329,17 @@ body.light .points-table td { border-bottom-color: #ddd; color: #111; }
 body.light .points-table tr.total-row td { background: #e8e8e8; }
 body.light .session-format-badge { background: #e0e0e0; color: #555; }
 body.light .matchup-card { background: #fff; border-color: #ccc; }
+body.light .matchup-team.oh { border-left-color: #BB0000; }
+body.light .matchup-team.mi { border-right-color: #00274C; }
 body.light .matchup-team.oh.leading { background: #BB0000; }
 body.light .matchup-team.mi.leading { background: #00274C; }
-body.light .hole-dots { background: #e8e8e8; border-top-color: #ccc; }
-body.light .hole-dot { background: #fff; border-color: #bbb; color: #555; }
+body.light .matchup-header { background: #fff; }
+body.light .match-label { color: #888; }
+body.light .holes-thru { color: #888; }
+body.light .hole-dot { background: #e8e8e8; border-color: #ccc; color: #555; }
+body.light .hole-dot.oh { background: #BB0000; border-color: #BB0000; color: #fff; }
+body.light .hole-dot.mi { background: #00274C; border-color: #00274C; color: #fff; }
+body.light .hole-dot.halved { background: #888; border-color: #888; color: #fff; }
 body.light .session-group-header { color: #111; }
 body.light .session-status-pill.upcoming { background: #e0e0e0; color: #555; border-color: #bbb; }
 body.light .session-status-pill.closed { background: #ddd; color: #777; border-color: #bbb; }
@@ -358,11 +367,7 @@ body.light .session-edit-panel { background: #f5f5f5; }
 body.light .session-edit-matchup-row { border-bottom-color: #ddd; color: #111; }
 body.light .password-screen h2 { color: #111; }
 body.light .password-screen input { background: #fff; border-color: #ccc; color: #111; }
-
-/* summary line colors adjust for light mode */
-body.light .nine-summary-mi { color: #00274C !important; }
-
-.mode-toggle {
+body.light .mode-toggle { background: #e0e0e0; border-color: #bbb; color: #555; }
 position: fixed;
 bottom: 70px;
 right: 14px;
@@ -730,54 +735,46 @@ body.light .mode-toggle { background: #e0e0e0; border-color: #bbb; color: #555; 
             var frontStatus = calcNineStatus(split.front);
             var backStatus = calcNineStatus(split.back);
 
-            // Leading side = whoever is ahead in the CURRENT active nine
-            // Front nine in progress → use front status; front done → use back status
+            // Top card status = current active nine
             var activeStatus = frontStatus.holesPlayed < 9 ? frontStatus : backStatus;
             var ohLeading = activeStatus.ohUp > 0 ? ' leading' : '';
             var miLeading = activeStatus.ohUp < 0 ? ' leading' : '';
 
-            // Front nine status label with color
-            var frontLabel, backLabel, frontColor, backColor;
-
-            function nineColor(status) {
-              if (status.holesPlayed < 9) return '#888';
-              if (status.ohUp > 0) return '#ff4444';
-              if (status.ohUp < 0) return '#4488cc';
-              return '#888';
-            }
-
-            frontColor = nineColor(frontStatus);
-            backColor = nineColor(backStatus);
-
-            if (frontStatus.holesPlayed === 0) { frontLabel = 'Front: —'; }
-            else if (frontStatus.holesPlayed === 9) { frontLabel = 'Front: ' + (frontStatus.ohUp > 0 ? 'OH ' : frontStatus.ohUp < 0 ? 'MI ' : '') + frontStatus.statusText; }
-            else { frontLabel = 'Front: ' + frontStatus.statusText + ' Thru ' + frontStatus.holesPlayed; }
-
-            if (backStatus.holesPlayed === 0) { backLabel = 'Back: —'; }
-            else if (backStatus.holesPlayed === 9) { backLabel = 'Back: ' + (backStatus.ohUp > 0 ? 'OH ' : backStatus.ohUp < 0 ? 'MI ' : '') + backStatus.statusText; }
-            else { backLabel = 'Back: ' + backStatus.statusText + ' Thru ' + backStatus.holesPlayed; }
-
-            // Active status shown large
             var displayStatus = frontStatus.holesPlayed < 9 ? frontStatus : backStatus;
             var displayLabel = frontStatus.holesPlayed < 9
               ? ('Front · Thru ' + frontStatus.holesPlayed)
               : (backStatus.holesPlayed === 9 ? 'Back · FINAL' : 'Back · Thru ' + backStatus.holesPlayed);
-
             if (matchup.status === 'closed') displayLabel = 'FINAL';
 
-            // Dots: all 18 holes, with divider after hole 9
-            var allOrdered = buildHoleOrder(matchup.starting_hole, 18);
-            var frontDots = buildDotsHtml(allOrdered.slice(0, 9), results);
-            var backDots = buildDotsHtml(allOrdered.slice(9, 18), results);
-            var dotsHtml = frontDots
-              + '<div style="width:100%;height:1px;background:#444;margin:4px 0;"></div>'
-              + backDots;
+            // Nine row background colors
+            function nineBg(s) {
+              if (s.holesPlayed === 9 && s.ohUp > 0) return '#8B0000';
+              if (s.holesPlayed === 9 && s.ohUp < 0) return '#00274C';
+              return '#242424';
+            }
 
-            // Summary line below status
-            var summaryLine = '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:0.8rem;margin-top:3px;text-align:center;padding:4px 8px;">'
-              + '<span style="color:' + frontColor + ';">' + frontLabel + '</span>'
-              + ' &nbsp;|&nbsp; '
-              + '<span class="nine-summary-mi" style="color:' + backColor + ';">' + backLabel + '</span>'
+            var allOrdered = buildHoleOrder(matchup.starting_hole, 18);
+            var frontHoles = allOrdered.slice(0, 9);
+            var backHoles = allOrdered.slice(9, 18);
+
+            var frontRowBg = nineBg(frontStatus);
+            var backRowBg = nineBg(backStatus);
+
+            var frontLabel = frontStatus.holesPlayed === 9
+              ? (frontStatus.ohUp > 0 ? 'OH wins' : frontStatus.ohUp < 0 ? 'MI wins' : 'Tied')
+              : (frontStatus.holesPlayed === 0 ? 'Front Nine' : 'Front · Thru ' + frontStatus.holesPlayed);
+            var backLabel = backStatus.holesPlayed === 9
+              ? (backStatus.ohUp > 0 ? 'OH wins' : backStatus.ohUp < 0 ? 'MI wins' : 'Tied')
+              : (backStatus.holesPlayed === 0 ? 'Back Nine' : 'Back · Thru ' + backStatus.holesPlayed);
+
+            var frontDotsRow = '<div style="background:' + frontRowBg + ';border-top:1px solid #333;padding:6px 10px;">'
+              + '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:0.65rem;letter-spacing:1px;text-transform:uppercase;color:' + (frontRowBg === '#242424' ? '#888' : 'rgba(255,255,255,0.7)') + ';margin-bottom:4px;">' + frontLabel + '</div>'
+              + '<div style="display:flex;justify-content:center;gap:4px;flex-wrap:wrap;">' + buildDotsHtml(frontHoles, results) + '</div>'
+              + '</div>';
+
+            var backDotsRow = '<div style="background:' + backRowBg + ';border-top:1px solid #333;padding:6px 10px;">'
+              + '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:0.65rem;letter-spacing:1px;text-transform:uppercase;color:' + (backRowBg === '#242424' ? '#888' : 'rgba(255,255,255,0.7)') + ';margin-bottom:4px;">' + backLabel + '</div>'
+              + '<div style="display:flex;justify-content:center;gap:4px;flex-wrap:wrap;">' + buildDotsHtml(backHoles, results) + '</div>'
               + '</div>';
 
             html += '<div class="matchup-card"><div class="matchup-header">'
@@ -788,8 +785,8 @@ body.light .mode-toggle { background: #e0e0e0; border-color: #bbb; color: #555; 
               + '</div>'
               + '<div class="matchup-team mi' + miLeading + '"><div class="player-name">' + miNames.join('<br>') + '</div></div>'
               + '</div>'
-              + summaryLine
-              + '<div class="hole-dots" style="flex-wrap:wrap;">' + dotsHtml + '</div>'
+              + frontDotsRow
+              + backDotsRow
               + '</div>';
           }
         });
