@@ -746,36 +746,38 @@ body.light .mode-toggle { background: #e0e0e0; border-color: #bbb; color: #555; 
               : (backStatus.holesPlayed === 9 ? 'Back · FINAL' : 'Back · Thru ' + backStatus.holesPlayed);
             if (matchup.status === 'closed') displayLabel = 'FINAL';
 
-            // Nine row background colors
-            function nineBg(s) {
-              if (s.holesPlayed === 9 && s.ohUp > 0) return '#8B0000';
-              if (s.holesPlayed === 9 && s.ohUp < 0) return '#00274C';
-              return '#242424';
-            }
-
             var allOrdered = buildHoleOrder(matchup.starting_hole, 18);
             var frontHoles = allOrdered.slice(0, 9);
             var backHoles = allOrdered.slice(9, 18);
 
-            var frontRowBg = nineBg(frontStatus);
-            var backRowBg = nineBg(backStatus);
+            function buildNineRow(nineStatus, holes, results, label) {
+              var ohWon = nineStatus.holesPlayed === 9 && nineStatus.ohUp > 0;
+              var miWon = nineStatus.holesPlayed === 9 && nineStatus.ohUp < 0;
+              var tied  = nineStatus.holesPlayed === 9 && nineStatus.ohUp === 0;
+              var leftBg  = ohWon ? '#BB0000' : '#0f0f0f';
+              var rightBg = miWon ? '#00274C' : '#0f0f0f';
+              var leftContent = ohWon
+                ? '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:1.2rem;color:#fff;line-height:1;">' + nineStatus.ohUp + ' UP</div>'
+                  + '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:0.6rem;color:rgba(255,255,255,0.65);letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Ohio</div>'
+                : '';
+              var rightContent = miWon
+                ? '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:1.2rem;color:#FFCB05;line-height:1;">' + Math.abs(nineStatus.ohUp) + ' UP</div>'
+                  + '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:0.6rem;color:rgba(255,203,5,0.75);letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Mich</div>'
+                : '';
+              var midLabel = tied ? 'TIED' : (nineStatus.holesPlayed < 9 ? label : '');
+              var midLabelColor = tied ? '#888' : '#555';
+              return '<div style="display:flex;align-items:stretch;border-top:1px solid #222;">'
+                + '<div style="width:22%;background:' + leftBg + ';display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;min-height:52px;">' + leftContent + '</div>'
+                + '<div style="flex:1;background:#0f0f0f;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 8px;">'
+                + (midLabel ? '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:0.6rem;letter-spacing:1px;text-transform:uppercase;color:' + midLabelColor + ';margin-bottom:4px;">' + midLabel + '</div>' : '')
+                + '<div style="display:flex;justify-content:center;gap:3px;flex-wrap:wrap;">' + buildDotsHtml(holes, results) + '</div>'
+                + '</div>'
+                + '<div style="width:22%;background:' + rightBg + ';display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;min-height:52px;">' + rightContent + '</div>'
+                + '</div>';
+            }
 
-            var frontLabel = frontStatus.holesPlayed === 9
-              ? (frontStatus.ohUp > 0 ? 'OH wins' : frontStatus.ohUp < 0 ? 'MI wins' : 'Tied')
-              : (frontStatus.holesPlayed === 0 ? 'Front Nine' : 'Front · Thru ' + frontStatus.holesPlayed);
-            var backLabel = backStatus.holesPlayed === 9
-              ? (backStatus.ohUp > 0 ? 'OH wins' : backStatus.ohUp < 0 ? 'MI wins' : 'Tied')
-              : (backStatus.holesPlayed === 0 ? 'Back Nine' : 'Back · Thru ' + backStatus.holesPlayed);
-
-            var frontDotsRow = '<div style="background:' + frontRowBg + ';border-top:1px solid #333;padding:6px 10px;">'
-              + '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:0.65rem;letter-spacing:1px;text-transform:uppercase;color:' + (frontRowBg === '#242424' ? '#888' : 'rgba(255,255,255,0.7)') + ';margin-bottom:4px;">' + frontLabel + '</div>'
-              + '<div style="display:flex;justify-content:center;gap:4px;flex-wrap:wrap;">' + buildDotsHtml(frontHoles, results) + '</div>'
-              + '</div>';
-
-            var backDotsRow = '<div style="background:' + backRowBg + ';border-top:1px solid #333;padding:6px 10px;">'
-              + '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:0.65rem;letter-spacing:1px;text-transform:uppercase;color:' + (backRowBg === '#242424' ? '#888' : 'rgba(255,255,255,0.7)') + ';margin-bottom:4px;">' + backLabel + '</div>'
-              + '<div style="display:flex;justify-content:center;gap:4px;flex-wrap:wrap;">' + buildDotsHtml(backHoles, results) + '</div>'
-              + '</div>';
+            var frontNineRow = buildNineRow(frontStatus, frontHoles, results, 'Front Nine');
+            var backNineRow = buildNineRow(backStatus, backHoles, results, 'Back Nine');
 
             html += '<div class="matchup-card"><div class="matchup-header">'
               + '<div class="matchup-team oh' + ohLeading + '"><div class="player-name">' + ohNames.join('<br>') + '</div></div>'
@@ -785,8 +787,8 @@ body.light .mode-toggle { background: #e0e0e0; border-color: #bbb; color: #555; 
               + '</div>'
               + '<div class="matchup-team mi' + miLeading + '"><div class="player-name">' + miNames.join('<br>') + '</div></div>'
               + '</div>'
-              + frontDotsRow
-              + backDotsRow
+              + frontNineRow
+              + backNineRow
               + '</div>';
           }
         });
