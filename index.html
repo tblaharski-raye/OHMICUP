@@ -628,24 +628,23 @@ body.light .mode-toggle { background: #e0e0e0; border-color: #bbb; color: #555; 
     var backStart = parseInt(backNineStart || defaultBackStart);
     var frontDecidedEarly = !!(backNineStart && parseInt(backNineStart) !== defaultBackStart);
 
-    // When decided early, trim frontHoles to only holes before back_nine_start
-    var displayFrontHoles = frontHoles;
-    if (frontDecidedEarly) {
-      var backStartIdx = allOrdered.indexOf(backStart);
-      displayFrontHoles = backStartIdx > 0 ? allOrdered.slice(0, backStartIdx) : frontHoles;
-    }
+    // Front nine always shows all 9 holes; crossed holes = unplayed ones when decided early
+    var backStartIdx = allOrdered.indexOf(backStart);
+    var crossedFrontHoles = frontDecidedEarly
+      ? frontHoles.filter(function(h) { return allOrdered.indexOf(h) >= backStartIdx; })
+      : [];
 
+    // Back nine is always 9 holes from backStart
     var backHoles = buildHoleOrder(backStart, 9);
-    // Remove any overlap with original front nine
-    backHoles = backHoles.filter(function(h) { return frontHoles.indexOf(h) === -1; });
 
     var frontResults = results.filter(function(r) { return frontHoles.indexOf(r.hole_number) !== -1; });
     var backResults = results.filter(function(r) { return backHoles.indexOf(r.hole_number) !== -1; });
     return {
       front: frontResults,
       back: backResults,
-      frontHoles: displayFrontHoles,
+      frontHoles: frontHoles,
       backHoles: backHoles,
+      crossedFrontHoles: crossedFrontHoles,
       frontDecidedEarly: frontDecidedEarly
     };
   }
@@ -847,7 +846,7 @@ body.light .mode-toggle { background: #e0e0e0; border-color: #bbb; color: #555; 
             }
 
             // No crossed holes needed - frontHoles already trimmed to played holes only
-            var frontCrossed = [];
+            var frontCrossed = split.crossedFrontHoles || [];
 
             var frontNineRow = buildNineRow(frontStatus, frontHoles, results, 'Front Nine', frontCrossed);
             var backNineRow = buildNineRow(backStatus, backHoles, results, 'Back Nine', []);
