@@ -625,12 +625,29 @@ body.light .mode-toggle { background: #e0e0e0; border-color: #bbb; color: #555; 
     var allOrdered = buildHoleOrder(startingHole, 18);
     var frontHoles = allOrdered.slice(0, 9);
     var defaultBackStart = allOrdered[9];
-    var backStart = backNineStart || defaultBackStart;
-    var frontDecidedEarly = backNineStart && backNineStart !== defaultBackStart;
+    var backStart = parseInt(backNineStart || defaultBackStart);
+    var frontDecidedEarly = !!(backNineStart && parseInt(backNineStart) !== defaultBackStart);
+
+    // When decided early, trim frontHoles to only holes before back_nine_start
+    var displayFrontHoles = frontHoles;
+    if (frontDecidedEarly) {
+      var backStartIdx = allOrdered.indexOf(backStart);
+      displayFrontHoles = backStartIdx > 0 ? allOrdered.slice(0, backStartIdx) : frontHoles;
+    }
+
     var backHoles = buildHoleOrder(backStart, 9);
+    // Remove any overlap with original front nine
+    backHoles = backHoles.filter(function(h) { return frontHoles.indexOf(h) === -1; });
+
     var frontResults = results.filter(function(r) { return frontHoles.indexOf(r.hole_number) !== -1; });
     var backResults = results.filter(function(r) { return backHoles.indexOf(r.hole_number) !== -1; });
-    return { front: frontResults, back: backResults, frontHoles: frontHoles, backHoles: backHoles, frontDecidedEarly: frontDecidedEarly };
+    return {
+      front: frontResults,
+      back: backResults,
+      frontHoles: displayFrontHoles,
+      backHoles: backHoles,
+      frontDecidedEarly: frontDecidedEarly
+    };
   }
 
   // Check if front nine is mathematically decided (up by more than holes remaining)
@@ -829,12 +846,8 @@ body.light .mode-toggle { background: #e0e0e0; border-color: #bbb; color: #555; 
                 + '</div>';
             }
 
-            // Crossed holes = unplayed front nine holes when decided early
+            // No crossed holes needed - frontHoles already trimmed to played holes only
             var frontCrossed = [];
-            if (matchup.back_nine_start) {
-              var playedFrontHoles = split.front.map(function(r) { return r.hole_number; });
-              frontCrossed = frontHoles.filter(function(h) { return playedFrontHoles.indexOf(h) === -1; });
-            }
 
             var frontNineRow = buildNineRow(frontStatus, frontHoles, results, 'Front Nine', frontCrossed);
             var backNineRow = buildNineRow(backStatus, backHoles, results, 'Back Nine', []);
