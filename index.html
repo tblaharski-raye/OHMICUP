@@ -172,6 +172,19 @@ body { background: #0f0f0f; color: #f0f0f0; font-family: ‘Barlow’, sans-seri
 .toast.error { border-color: #ff4444; color: #ff4444; }
 
 .mt-16 { margin-top: 16px; }
+
+.sticky-entry-bar { display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 90; background: #111; border-bottom: 2px solid #333; padding: 8px 16px; flex-direction: row; align-items: center; justify-content: space-between; gap: 8px; }
+.sticky-entry-bar.visible { display: flex; }
+.sticky-entry-bar-meta { flex: 1; }
+.sticky-entry-bar-round { font-family: ‘Barlow Condensed’, sans-serif; font-size: 0.7rem; letter-spacing: 1px; text-transform: uppercase; color: #888; line-height: 1; }
+.sticky-entry-bar-match { font-family: ‘Barlow Condensed’, sans-serif; font-size: 0.9rem; font-weight: 600; color: #f0f0f0; line-height: 1.3; margin-top: 2px; }
+.sticky-entry-bar-status { text-align: right; }
+.sticky-entry-bar-value { font-family: ‘Bebas Neue’, sans-serif; font-size: 1.4rem; line-height: 1; }
+.sticky-entry-bar-value.oh-up { color: #ff4444; }
+.sticky-entry-bar-value.mi-up { color: #FFCB05; }
+.sticky-entry-bar-value.tied { color: #888; }
+.sticky-entry-bar-thru { font-family: ‘Barlow’, sans-serif; font-size: 0.65rem; color: #888; text-align: right; margin-top: 2px; }
+#panel-entry.entry-active { padding-top: 62px; }
 </style>
 
 </head>
@@ -282,6 +295,17 @@ body { background: #0f0f0f; color: #f0f0f0; font-family: ‘Barlow’, sans-seri
       <h3>Manage Sessions</h3>
       <div id="admin-sessions-list"><div class="loading-state"><div class="spinner"></div>Loading...</div></div>
     </div>
+  </div>
+</div>
+
+<div id="sticky-entry-bar" class="sticky-entry-bar">
+  <div class="sticky-entry-bar-meta">
+    <div class="sticky-entry-bar-round" id="sticky-bar-round"></div>
+    <div class="sticky-entry-bar-match" id="sticky-bar-match"></div>
+  </div>
+  <div class="sticky-entry-bar-status">
+    <div class="sticky-entry-bar-value tied" id="sticky-bar-value">TIED</div>
+    <div class="sticky-entry-bar-thru" id="sticky-bar-thru">Thru 0</div>
   </div>
 </div>
 
@@ -650,6 +674,8 @@ body { background: #0f0f0f; color: #f0f0f0; font-family: ‘Barlow’, sans-seri
     state.entrySessionId = this.value;
     populateEntryMatchups();
     document.getElementById('entry-content').style.display = 'none';
+    document.getElementById('sticky-entry-bar').classList.remove('visible');
+    document.getElementById('panel-entry').classList.remove('entry-active');
   });
 
   function populateEntryMatchups() {
@@ -679,6 +705,14 @@ body { background: #0f0f0f; color: #f0f0f0; font-family: ‘Barlow’, sans-seri
     state.entryCourse = course;
     state.entryMatchup = matchup;
     state.entrySession = session;
+    var ap = allPlayers();
+    var mPlayers = state.matchupPlayers.filter(function(p) { return p.matchup_id === matchup.id; });
+    var ohFirst = mPlayers.filter(function(p) { return p.team === 'OH'; }).map(function(p) { var pl = ap.find(function(x) { return x.id === p.player_id; }); return pl ? pl.name.split(' ')[0] : '?'; }).join('/');
+    var miFirst = mPlayers.filter(function(p) { return p.team === 'MI'; }).map(function(p) { var pl = ap.find(function(x) { return x.id === p.player_id; }); return pl ? pl.name.split(' ')[0] : '?'; }).join('/');
+    document.getElementById('sticky-bar-round').textContent = session.name + ' \u00b7 Match ' + matchup.match_number;
+    document.getElementById('sticky-bar-match').textContent = 'OH: ' + ohFirst + '  vs  MI: ' + miFirst;
+    document.getElementById('sticky-entry-bar').classList.add('visible');
+    document.getElementById('panel-entry').classList.add('entry-active');
     var isSingles = session.format === 'singles';
     var totalHoles = isSingles ? 9 : 18;
     var orderedHoles = buildHoleOrder(matchup.starting_hole, totalHoles);
@@ -806,6 +840,10 @@ body { background: #0f0f0f; color: #f0f0f0; font-family: ‘Barlow’, sans-seri
     el.textContent = statusText;
     el.className = 'status-value ' + statusClass;
     document.getElementById('entry-holes-thru').textContent = thruText;
+    var sv = document.getElementById('sticky-bar-value');
+    if (sv) { sv.textContent = statusText; sv.className = 'sticky-entry-bar-value ' + statusClass; }
+    var st = document.getElementById('sticky-bar-thru');
+    if (st) st.textContent = thruText;
   }
 
   function checkAdminPw() {
