@@ -605,15 +605,16 @@ body.light .mode-toggle { background: #e0e0e0; border-color: #bbb; color: #555; 
   }
 
   // Returns status for a subset of results (one 9-hole match)
-  function calcNineStatus(results) {
+  // Pass decidedEarly=true when back_nine_start was set before hole 10
+  function calcNineStatus(results, decidedEarly) {
     var ohUp = 0;
     results.forEach(function(r) {
       if (r.winner === 'OH') ohUp++;
       else if (r.winner === 'MI') ohUp--;
     });
-    var holesPlayed = results.length;
+    var holesPlayed = decidedEarly ? 9 : results.length;
     var statusText, statusClass;
-    if (holesPlayed === 0 || ohUp === 0) { statusText = 'TIED'; statusClass = 'tied'; }
+    if (results.length === 0 || ohUp === 0) { statusText = 'TIED'; statusClass = 'tied'; }
     else if (ohUp > 0) { statusText = ohUp + ' UP'; statusClass = 'oh-up'; }
     else { statusText = Math.abs(ohUp) + ' UP'; statusClass = 'mi-up'; }
     return { ohUp: ohUp, holesPlayed: holesPlayed, statusText: statusText, statusClass: statusClass };
@@ -623,11 +624,13 @@ body.light .mode-toggle { background: #e0e0e0; border-color: #bbb; color: #555; 
   function splitNines(results, startingHole, backNineStart) {
     var allOrdered = buildHoleOrder(startingHole, 18);
     var frontHoles = allOrdered.slice(0, 9);
-    var backStart = backNineStart || allOrdered[9];
+    var defaultBackStart = allOrdered[9];
+    var backStart = backNineStart || defaultBackStart;
+    var frontDecidedEarly = backNineStart && backNineStart !== defaultBackStart;
     var backHoles = buildHoleOrder(backStart, 9);
     var frontResults = results.filter(function(r) { return frontHoles.indexOf(r.hole_number) !== -1; });
     var backResults = results.filter(function(r) { return backHoles.indexOf(r.hole_number) !== -1; });
-    return { front: frontResults, back: backResults, frontHoles: frontHoles, backHoles: backHoles };
+    return { front: frontResults, back: backResults, frontHoles: frontHoles, backHoles: backHoles, frontDecidedEarly: frontDecidedEarly };
   }
 
   // Check if front nine is mathematically decided (up by more than holes remaining)
@@ -667,7 +670,7 @@ body.light .mode-toggle { background: #e0e0e0; border-color: #bbb; color: #555; 
       } else {
         // All other formats: two independent 9-hole matches
         var split = splitNines(results, m.starting_hole, m.back_nine_start);
-        var frontStatus = calcNineStatus(split.front);
+        var frontStatus = calcNineStatus(split.front, split.frontDecidedEarly);
         var backStatus = calcNineStatus(split.back);
         if (frontStatus.holesPlayed === 9) {
           var fpts = awardPoints(frontStatus.ohUp);
@@ -756,7 +759,7 @@ body.light .mode-toggle { background: #e0e0e0; border-color: #bbb; color: #555; 
           } else {
             // Two 9-hole matches on same card
             var split = splitNines(results, matchup.starting_hole, matchup.back_nine_start);
-            var frontStatus = calcNineStatus(split.front);
+            var frontStatus = calcNineStatus(split.front, split.frontDecidedEarly);
             var backStatus = calcNineStatus(split.back);
 
             var bothComplete = frontStatus.holesPlayed === 9 && backStatus.holesPlayed === 9;
@@ -1051,7 +1054,8 @@ body.light .mode-toggle { background: #e0e0e0; border-color: #bbb; color: #555; 
     } else {
       var split = splitNines(results, matchup.starting_hole, matchup.back_nine_start);
       var active = split.front.length < 9 ? split.front : split.back;
-      var s = calcNineStatus(active);
+      var decidedEarly = split.front.length < 9 ? false : split.frontDecidedEarly;
+      var s = calcNineStatus(active, decidedEarly);
       statusText = s.statusText; statusClass = s.statusClass;
       var nine = split.front.length < 9 ? 'Front' : 'Back';
       thruText = nine + ' · Thru ' + s.holesPlayed;
