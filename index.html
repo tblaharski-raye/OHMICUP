@@ -873,12 +873,15 @@ body.light .mode-toggle { background: #e0e0e0; border-color: #bbb; color: #555; 
     crossedHoles = crossedHoles || [];
     var html = '';
     holesArray.forEach(function(h) {
-      var result = results.find(function(r) { return r.hole_number === h; });
+      var isCrossed = crossedHoles.indexOf(h) !== -1;
       var dotClass = '';
-      if (result && result.winner === 'OH') dotClass = 'oh';
-      else if (result && result.winner === 'MI') dotClass = 'mi';
-      else if (result && result.winner === 'halved') dotClass = 'halved';
-      if (crossedHoles.indexOf(h) !== -1) dotClass += ' crossed';
+      if (!isCrossed) {
+        var result = results.find(function(r) { return r.hole_number === h; });
+        if (result && result.winner === 'OH') dotClass = 'oh';
+        else if (result && result.winner === 'MI') dotClass = 'mi';
+        else if (result && result.winner === 'halved') dotClass = 'halved';
+      }
+      if (isCrossed) dotClass = 'crossed';
       html += '<div class="hole-dot ' + dotClass + '" style="width:' + size + ';height:' + size + ';font-size:' + font + ';">' + h + '</div>';
     });
     return html;
