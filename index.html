@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OhMi Cup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+background: #0f0f0f;
+color: #f0f0f0;
+font-family: ‘Barlow’, sans-serif;
+min-height: 100vh;
+padding-bottom: 80px;
+}
+
+.app-header {
+background: linear-gradient(135deg, #8B0000 0%, #1a1a1a 40%, #1a1a1a 60%, #001a33 100%);
+padding: 16px 20px 12px;
+text-align: center;
+border-bottom: 3px solid #333;
+}
+
+.app-header h1 {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: 2.4rem;
+letter-spacing: 3px;
+background: linear-gradient(90deg, #ff4444, #fff, #FFCB05);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+}
+
+.app-header .subtitle {
+font-family: ‘Barlow Condensed’, sans-serif;
+font-size: 0.8rem;
+letter-spacing: 2px;
+color: #888;
+text-transform: uppercase;
+margin-top: 2px;
+}
+
+.score-banner {
+display: flex;
+align-items: stretch;
+background: #1a1a1a;
+border-bottom: 2px solid #333;
+min-height: 64px;
+}
+
+.banner-team {
+flex: 1;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+padding: 10px 16px;
+gap: 2px;
+}
+
+.banner-team.oh { background: linear-gradient(135deg, #BB0000 0%, #8B0000 100%); }
+.banner-team.mi { background: linear-gradient(135deg, #001a33 0%, #00274C 100%); }
+
+.banner-team .team-label {
+font-family: ‘Barlow Condensed’, sans-serif;
+font-size: 0.7rem;
+letter-spacing: 2px;
+text-transform: uppercase;
+opacity: 0.85;
+}
+
+.banner-team .team-score {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: 2.6rem;
+line-height: 1;
+}
+
+.banner-divider {
+display: flex;
+align-items: center;
+justify-content: center;
+padding: 0 12px;
+background: #1a1a1a;
+font-family: ‘Barlow Condensed’, sans-serif;
+font-size: 0.75rem;
+letter-spacing: 1px;
+color: #888;
+text-transform: uppercase;
+}
+
+.progress-bar-wrap { background: #242424; height: 6px; display: flex; }
+.progress-oh { background: #BB0000; transition: width 0.6s ease; }
+.progress-mi { background: #00274C; transition: width 0.6s ease; }
+
+.tabs {
+position: fixed;
+bottom: 0; left: 0; right: 0;
+display: flex;
+background: #111;
+border-top: 2px solid #333;
+z-index: 100;
+}
+
+.tab-btn {
+flex: 1;
+padding: 12px 8px 10px;
+background: none;
+border: none;
+color: #888;
+font-family: ‘Barlow Condensed’, sans-serif;
+font-size: 0.75rem;
+letter-spacing: 1px;
+text-transform: uppercase;
+cursor: pointer;
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 4px;
+}
+
+.tab-btn .tab-icon { font-size: 1.2rem; }
+.tab-btn.active { color: #FFCB05; }
+
+.panel { display: none; padding: 16px; }
+.panel.active { display: block; }
+
+.section-header {
+font-family: ‘Barlow Condensed’, sans-serif;
+font-size: 0.7rem;
+letter-spacing: 2px;
+text-transform: uppercase;
+color: #888;
+padding: 12px 0 8px;
+border-bottom: 1px solid #333;
+margin-bottom: 12px;
+}
+
+.points-table {
+background: #1a1a1a;
+border-radius: 8px;
+overflow: hidden;
+margin-bottom: 20px;
+border: 1px solid #333;
+}
+
+.points-table table { width: 100%; border-collapse: collapse; font-family: ‘Barlow Condensed’, sans-serif; }
+
+.points-table th {
+padding: 8px 12px;
+font-size: 0.7rem;
+letter-spacing: 1px;
+text-transform: uppercase;
+color: #888;
+text-align: left;
+background: #242424;
+border-bottom: 1px solid #333;
+}
+
+.points-table th.oh-col { color: #ff4444; text-align: center; }
+.points-table th.mi-col { color: #FFCB05; text-align: center; }
+
+.points-table td { padding: 9px 12px; font-size: 0.95rem; border-bottom: 1px solid #333; color: #f0f0f0; }
+.points-table td.oh-col { text-align: center; color: #ff4444; font-weight: 600; }
+.points-table td.mi-col { text-align: center; color: #FFCB05; font-weight: 600; }
+.points-table tr:last-child td { border-bottom: none; }
+
+.points-table tr.total-row td { background: #242424; font-weight: 700; font-size: 1.05rem; }
+.points-table tr.total-row td.oh-col { color: #ff4444; }
+.points-table tr.total-row td.mi-col { color: #FFCB05; }
+
+.session-label { color: #f0f0f0; font-size: 0.85rem; }
+.session-format-badge {
+display: inline-block;
+font-size: 0.6rem;
+letter-spacing: 1px;
+text-transform: uppercase;
+background: #242424;
+color: #888;
+padding: 2px 6px;
+border-radius: 3px;
+margin-left: 6px;
+vertical-align: middle;
+}
+
+.matchup-card { background: #1a1a1a; border: 1px solid #333; border-radius: 10px; margin-bottom: 12px; overflow: hidden; }
+.matchup-header { display: flex; align-items: stretch; min-height: 70px; }
+
+.matchup-team { flex: 1; padding: 10px 12px; display: flex; flex-direction: column; justify-content: center; }
+.matchup-team.oh { border-left: 4px solid #BB0000; }
+.matchup-team.mi { border-right: 4px solid #00274C; text-align: right; }
+.matchup-team .player-name { font-family: ‘Barlow Condensed’, sans-serif; font-size: 1rem; font-weight: 700; line-height: 1.2; }
+.matchup-team.oh .player-name { color: #E8E8E8; }
+.matchup-team.mi .player-name { color: #FFCB05; }
+.matchup-team.oh.leading { background: #BB0000; }
+.matchup-team.mi.leading { background: #00274C; }
+
+.matchup-status-center { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px 10px; min-width: 80px; text-align: center; }
+.match-label { font-family: ‘Barlow Condensed’, sans-serif; font-size: 0.6rem; letter-spacing: 1px; text-transform: uppercase; color: #888; margin-bottom: 4px; }
+.match-status { font-family: ‘Bebas Neue’, sans-serif; font-size: 1.4rem; line-height: 1; }
+.match-status.oh-up { color: #ff4444; }
+.match-status.mi-up { color: #FFCB05; }
+.match-status.tied { color: #888; }
+
+.holes-thru { font-family: ‘Barlow’, sans-serif; font-size: 0.65rem; color: #888; margin-top: 2px; }
+
+.hole-dots { display: flex; padding: 8px 10px; gap: 4px; background: #242424; flex-wrap: wrap; border-top: 1px solid #333; }
+.hole-dot {
+width: 19px; height: 19px; border-radius: 50%;
+display: flex; align-items: center; justify-content: center;
+font-family: ‘Barlow Condensed’, sans-serif; font-size: 0.5rem; font-weight: 700;
+border: 1.5px solid #333; color: #888; background: #1a1a1a;
+}
+.hole-dot.oh { background: #BB0000; border-color: #BB0000; color: #fff; }
+.hole-dot.mi { background: #00274C; border-color: #00274C; color: #fff; }
+.hole-dot.halved { background: #555; border-color: #555; color: #ccc; }
+
+.session-group { margin-bottom: 24px; }
+.session-group-header { font-family: ‘Bebas Neue’, sans-serif; font-size: 1.1rem; letter-spacing: 2px; color: #f0f0f0; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+
+.session-status-pill { font-family: ‘Barlow Condensed’, sans-serif; font-size: 0.6rem; letter-spacing: 1px; text-transform: uppercase; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
+.session-status-pill.active { background: #1a3a1a; color: #4caf50; border: 1px solid #4caf50; }
+.session-status-pill.upcoming { background: #242424; color: #888; border: 1px solid #333; }
+.session-status-pill.closed { background: #2a2a2a; color: #666; border: 1px solid #444; }
+
+.select-wrap { position: relative; margin-bottom: 16px; }
+.select-wrap select { width: 100%; padding: 14px 16px; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; color: #f0f0f0; font-family: ‘Barlow Condensed’, sans-serif; font-size: 1rem; appearance: none; cursor: pointer; }
+.select-wrap::after { content: ‘▾’; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #888; pointer-events: none; }
+
+.hole-entry-card { background: #1a1a1a; border: 1px solid #333; border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+.hole-entry-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.hole-entry-num { font-family: ‘Bebas Neue’, sans-serif; font-size: 1.6rem; color: #f0f0f0; }
+.hole-entry-par { font-family: ‘Barlow Condensed’, sans-serif; font-size: 0.85rem; color: #888; }
+
+.winner-btns { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.winner-btn { padding: 12px 6px; border: 2px solid; border-radius: 8px; background: none; font-family: ‘Barlow Condensed’, sans-serif; font-size: 0.85rem; font-weight: 600; letter-spacing: 0.5px; cursor: pointer; transition: all 0.15s; text-transform: uppercase; }
+.winner-btn.oh-btn { border-color: #BB0000; color: #ff4444; }
+.winner-btn.oh-btn.selected { background: #BB0000; color: #fff; }
+.winner-btn.halved-btn { border-color: #555; color: #aaa; }
+.winner-btn.halved-btn.selected { background: #555; color: #fff; }
+.winner-btn.mi-btn { border-color: #00274C; color: #FFCB05; }
+.winner-btn.mi-btn.selected { background: #00274C; color: #FFCB05; }
+
+.live-status-bar { background: #242424; border: 1px solid #333; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; text-align: center; }
+.live-status-bar .status-label { font-family: ‘Barlow Condensed’, sans-serif; font-size: 0.7rem; letter-spacing: 1.5px; text-transform: uppercase; color: #888; margin-bottom: 4px; }
+.live-status-bar .status-value { font-family: ‘Bebas Neue’, sans-serif; font-size: 2rem; }
+.live-status-bar .status-value.oh-up { color: #ff4444; }
+.live-status-bar .status-value.mi-up { color: #FFCB05; }
+.live-status-bar .status-value.tied { color: #888; }
+
+.admin-section { background: #1a1a1a; border: 1px solid #333; border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+.admin-section h3 { font-family: ‘Barlow Condensed’, sans-serif; font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; color: #888; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid #333; }
+
+.form-group { margin-bottom: 12px; }
+.form-group label { display: block; font-family: ‘Barlow Condensed’, sans-serif; font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; color: #888; margin-bottom: 6px; }
+.form-group input, .form-group select { width: 100%; padding: 11px 14px; background: #242424; border: 1px solid #333; border-radius: 6px; color: #f0f0f0; font-family: ‘Barlow’, sans-serif; font-size: 0.95rem; }
+.form-group input:focus, .form-group select:focus { outline: none; border-color: #FFCB05; }
+
+.btn { width: 100%; padding: 13px; border: none; border-radius: 8px; font-family: ‘Barlow Condensed’, sans-serif; font-size: 1rem; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; font-weight: 700; transition: all 0.15s; margin-bottom: 8px; }
+.btn-primary { background: #FFCB05; color: #111; }
+.btn-secondary { background: #242424; color: #f0f0f0; border: 1px solid #333; }
+
+.admin-session-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #333; }
+.admin-session-row:last-child { border-bottom: none; }
+.admin-session-info { flex: 1; }
+.admin-session-name { font-family: ‘Barlow Condensed’, sans-serif; font-size: 1rem; font-weight: 600; color: #f0f0f0; }
+.admin-session-meta { font-size: 0.8rem; color: #888; margin-top: 2px; }
+.admin-session-actions { display: flex; gap: 8px; }
+
+.btn-sm { padding: 6px 12px; border: 1px solid #333; border-radius: 6px; background: #242424; color: #f0f0f0; font-family: ‘Barlow Condensed’, sans-serif; font-size: 0.75rem; letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer; }
+.btn-sm.open { border-color: #4caf50; color: #4caf50; }
+.btn-sm.close { border-color: #BB0000; color: #ff4444; }
+.btn-sm.edit { border-color: #FFCB05; color: #FFCB05; }
+
+.session-edit-panel { display: none; background: #0f0f0f; border-top: 1px solid #333; padding: 12px; }
+.session-edit-panel.open { display: block; }
+.session-edit-matchup-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #222; font-family: ‘Barlow Condensed’, sans-serif; font-size: 0.9rem; color: #f0f0f0; }
+.session-edit-matchup-row:last-child { border-bottom: none; }
+.btn-xs { padding: 4px 8px; border: 1px solid #BB0000; border-radius: 4px; background: none; color: #ff4444; font-family: ‘Barlow Condensed’, sans-serif; font-size: 0.7rem; text-transform: uppercase; cursor: pointer; }
+
+.password-screen { padding: 40px 20px; text-align: center; }
+.password-screen h2 { font-family: ‘Bebas Neue’, sans-serif; font-size: 1.8rem; letter-spacing: 2px; margin-bottom: 8px; color: #f0f0f0; }
+.password-screen p { color: #888; font-size: 0.9rem; margin-bottom: 24px; }
+.password-screen input { width: 100%; padding: 14px; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; color: #f0f0f0; font-family: ‘Barlow’, sans-serif; font-size: 1rem; text-align: center; margin-bottom: 12px; }
+.password-screen input:focus { outline: none; border-color: #FFCB05; }
+.error-msg { color: #ff4444; font-size: 0.85rem; margin-top: 8px; min-height: 20px; }
+
+.pairing-builder { background: #242424; border: 1px solid #333; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+.pairing-builder h4 { font-family: ‘Barlow Condensed’, sans-serif; font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; color: #888; margin-bottom: 10px; }
+.pairing-teams { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.pairing-team-col label { display: block; font-family: ‘Barlow Condensed’, sans-serif; font-size: 0.7rem; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+.pairing-team-col.oh-col label { color: #ff4444; }
+.pairing-team-col.mi-col label { color: #FFCB05; }
+.pairing-team-col select { width: 100%; padding: 8px 10px; background: #1a1a1a; border: 1px solid #333; border-radius: 6px; color: #f0f0f0; font-family: ‘Barlow’, sans-serif; font-size: 0.85rem; margin-bottom: 6px; }
+
+.starting-hole-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.starting-hole-row label { font-family: ‘Barlow Condensed’, sans-serif; font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; color: #888; white-space: nowrap; }
+.starting-hole-row select { flex: 1; padding: 8px 10px; background: #1a1a1a; border: 1px solid #333; border-radius: 6px; color: #f0f0f0; font-family: ‘Barlow’, sans-serif; font-size: 0.85rem; }
+
+.add-pairing-btn { background: none; border: 1px dashed #333; border-radius: 8px; color: #888; font-family: ‘Barlow Condensed’, sans-serif; font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase; padding: 10px; width: 100%; cursor: pointer; margin-bottom: 8px; }
+.remove-pairing-btn { background: none; border: none; color: #ff4444; font-size: 1rem; cursor: pointer; padding: 4px; float: right; }
+
+.hole-dot.crossed { position: relative; opacity: 0.4; }
+.hole-dot.crossed::before, .hole-dot.crossed::after {
+content: ‘’;
+position: absolute;
+width: 130%;
+height: 1.5px;
+background: #888;
+top: 50%;
+left: -15%;
+}
+.hole-dot.crossed::before { transform: rotate(45deg); }
+.hole-dot.crossed::after { transform: rotate(-45deg); }
+
+.loading-state, .empty-state { text-align: center; padding: 30px 20px; color: #888; font-family: ‘Barlow Condensed’, sans-serif; font-size: 0.95rem; letter-spacing: 1px; }
+.spinner { width: 28px; height: 28px; border: 3px solid #333; border-top-color: #FFCB05; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #242424; border: 1px solid #333; border-radius: 8px; padding: 12px 20px; font-family: ‘Barlow Condensed’, sans-serif; font-size: 0.9rem; z-index: 200; opacity: 0; transition: opacity 0.2s; white-space: nowrap; color: #f0f0f0; }
+.toast.show { opacity: 1; }
+.toast.success { border-color: #4caf50; color: #4caf50; }
+.toast.error { border-color: #ff4444; color: #ff4444; }
+
+.mt-16 { margin-top: 16px; }
+
+/* LIGHT MODE */
+body.light { background: #f0f0f0; color: #111; }
+body.light .app-header { background: linear-gradient(135deg, #BB0000 0%, #ddd 40%, #ddd 60%, #00274C 100%); border-bottom-color: #ccc; }
+body.light .score-banner { background: #e0e0e0; border-bottom-color: #ccc; }
+body.light .banner-team.oh { background: linear-gradient(135deg, #BB0000 0%, #8B0000 100%); }
+body.light .banner-team.mi { background: linear-gradient(135deg, #001a33 0%, #00274C 100%); }
+body.light .banner-divider { background: #e0e0e0; color: #555; }
+body.light .progress-bar-wrap { background: #ccc; }
+body.light .points-table { background: #fff; border-color: #ccc; }
+body.light .points-table th { background: #e8e8e8; color: #555; border-bottom-color: #ccc; }
+body.light .points-table td { border-bottom-color: #ddd; color: #111; }
+body.light .points-table tr.total-row td { background: #e8e8e8; }
+body.light .session-format-badge { background: #e0e0e0; color: #555; }
+body.light .matchup-card { background: #fff; border-color: #ccc; }
+body.light .matchup-team.oh { border-left-color: #BB0000; }
+body.light .matchup-team.mi { border-right-color: #00274C; }
+body.light .matchup-team.oh.leading { background: #BB0000; }
+body.light .matchup-team.mi.leading { background: #00274C; }
+body.light .matchup-header { background: #fff; }
+body.light .match-label { color: #888; }
+body.light .holes-thru { color: #888; }
+body.light .hole-dot { background: #e8e8e8; border-color: #ccc; color: #555; }
+body.light .hole-dot.oh { background: #BB0000; border-color: #BB0000; color: #fff; }
+body.light .hole-dot.mi { background: #00274C; border-color: #00274C; color: #fff; }
+body.light .hole-dot.halved { background: #888; border-color: #888; color: #fff; }
+body.light .session-group-header { color: #111; }
+body.light .session-status-pill.upcoming { background: #e0e0e0; color: #555; border-color: #bbb; }
+body.light .session-status-pill.closed { background: #ddd; color: #777; border-color: #bbb; }
+body.light .select-wrap select { background: #fff; border-color: #ccc; color: #111; }
+body.light .hole-entry-card { background: #fff; border-color: #ccc; }
+body.light .hole-entry-num { color: #111; }
+body.light .live-status-bar { background: #e8e8e8; border-color: #ccc; }
+body.light .admin-section { background: #fff; border-color: #ccc; }
+body.light .form-group input, body.light .form-group select { background: #f5f5f5; border-color: #ccc; color: #111; }
+body.light .btn-secondary { background: #e0e0e0; color: #111; border-color: #ccc; }
+body.light .admin-session-row { border-bottom-color: #ddd; }
+body.light .admin-session-name { color: #111; }
+body.light .btn-sm { background: #e0e0e0; border-color: #bbb; color: #111; }
+body.light .btn-sm.open { border-color: #4caf50; color: #2e7d32; }
+body.light .btn-sm.close { border-color: #BB0000; color: #BB0000; }
+body.light .btn-sm.edit { border-color: #996600; color: #996600; }
+body.light .pairing-builder { background: #f0f0f0; border-color: #ccc; }
+body.light .pairing-team-col select { background: #fff; border-color: #ccc; color: #111; }
+body.light .starting-hole-row select { background: #fff; border-color: #ccc; color: #111; }
+body.light .tabs { background: #e8e8e8; border-top-color: #ccc; }
+body.light .tab-btn { color: #555; }
+body.light .tab-btn.active { color: #996600; }
+body.light .toast { background: #fff; border-color: #ccc; color: #111; }
+body.light .session-edit-panel { background: #f5f5f5; }
+body.light .session-edit-matchup-row { border-bottom-color: #ddd; color: #111; }
+body.light .password-screen h2 { color: #111; }
+body.light .password-screen input { background: #fff; border-color: #ccc; color: #111; }
+body.light .mode-toggle { background: #e0e0e0; border-color: #bbb; color: #555; }
+position: fixed;
+bottom: 70px;
+right: 14px;
+z-index: 150;
+background: #242424;
+border: 1px solid #444;
+border-radius: 20px;
+padding: 6px 12px;
+font-family: ‘Barlow Condensed’, sans-serif;
+font-size: 0.7rem;
+letter-spacing: 1px;
+text-transform: uppercase;
+color: #888;
+cursor: pointer;
+transition: all 0.2s;
+}
+.sticky-entry-header {
+display: none;
+position: sticky;
+top: 0;
+z-index: 90;
+background: #111;
+border-bottom: 2px solid #333;
+padding: 8px 16px;
+flex-direction: row;
+align-items: center;
+justify-content: space-between;
+gap: 8px;
+}
+.sticky-entry-header.visible { display: flex; }
+.sticky-entry-meta { flex: 1; }
+.sticky-entry-round {
+font-family: ‘Barlow Condensed’, sans-serif;
+font-size: 0.7rem;
+letter-spacing: 1px;
+text-transform: uppercase;
+color: #888;
+line-height: 1;
+}
+.sticky-entry-match {
+font-family: ‘Barlow Condensed’, sans-serif;
+font-size: 0.85rem;
+font-weight: 600;
+color: #f0f0f0;
+line-height: 1.3;
+margin-top: 2px;
+}
+.sticky-entry-status {
+text-align: right;
+}
+.sticky-status-value {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: 1.4rem;
+line-height: 1;
+}
+.sticky-status-value.oh-up { color: #ff4444; }
+.sticky-status-value.mi-up { color: #FFCB05; }
+.sticky-status-value.tied { color: #888; }
+.sticky-holes-thru {
+font-family: ‘Barlow’, sans-serif;
+font-size: 0.65rem;
+color: #888;
+text-align: right;
+}
+
+body.light .sticky-entry-header { background: #f0f0f0; border-bottom-color: #ccc; }
+body.light .sticky-entry-match { color: #111; }
+
+</head>
+<body>
+
+<div class="app-header">
+  <h1>OhMi Cup</h1>
+  <div class="subtitle">Ohio vs Michigan · 2026</div>
+</div>
+
+<div class="score-banner">
+  <div class="banner-team oh">
+    <div class="team-label">🔴 Ohio</div>
+    <div class="team-score" id="oh-total">—</div>
+  </div>
+  <div class="banner-divider">vs</div>
+  <div class="banner-team mi">
+    <div class="team-label">Michigan 🔵</div>
+    <div class="team-score" id="mi-total">—</div>
+  </div>
+</div>
+<div class="progress-bar-wrap">
+  <div class="progress-oh" id="progress-oh" style="width:50%"></div>
+  <div class="progress-mi" id="progress-mi" style="width:50%"></div>
+</div>
+
+<div id="panel-scoreboard" class="panel active">
+  <div class="section-header">Points by Round</div>
+  <div class="points-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Session</th>
+          <th class="oh-col">OH</th>
+          <th class="mi-col">MI</th>
+        </tr>
+      </thead>
+      <tbody id="points-table-body">
+        <tr><td colspan="3"><div class="loading-state"><div class="spinner"></div>Loading...</div></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div id="sessions-container">
+    <div class="loading-state"><div class="spinner"></div>Loading sessions...</div>
+  </div>
+</div>
+
+<div id="panel-entry" class="panel">
+  <div class="section-header">Score Entry</div>
+  <div class="select-wrap">
+    <select id="entry-session-select"><option value="">Select session...</option></select>
+  </div>
+  <div class="select-wrap">
+    <select id="entry-matchup-select" disabled><option value="">Select matchup...</option></select>
+  </div>
+  <div id="entry-sticky-header" class="sticky-entry-header">
+    <div class="sticky-entry-meta">
+      <div class="sticky-entry-round" id="sticky-round-name"></div>
+      <div class="sticky-entry-match" id="sticky-match-name"></div>
+    </div>
+    <div class="sticky-entry-status">
+      <div class="sticky-status-value tied" id="sticky-status-value">TIED</div>
+      <div class="sticky-holes-thru" id="sticky-holes-thru">Thru 0</div>
+    </div>
+  </div>
+  <div id="entry-content" style="display:none">
+    <div id="entry-holes-container"></div>
+  </div>
+</div>
+
+<div id="panel-admin" class="panel">
+  <div id="admin-password-gate">
+    <div class="password-screen">
+      <h2>Admin Access</h2>
+      <p>Enter the admin password to continue</p>
+      <input type="password" id="admin-pw-input" placeholder="Password" />
+      <button class="btn btn-primary" onclick="checkAdminPw()">Enter</button>
+      <div class="error-msg" id="admin-pw-error"></div>
+    </div>
+  </div>
+  <div id="admin-content" style="display:none">
+    <div class="admin-section">
+      <h3>Create Session</h3>
+      <div class="form-group"><label>Session Name</label><input type="text" id="session-name" placeholder="e.g. Friday Morning" /></div>
+      <div class="form-group"><label>Date</label><input type="date" id="session-date" /></div>
+      <div class="form-group">
+        <label>Format</label>
+        <select id="session-format">
+          <option value="scramble">Scramble</option>
+          <option value="best_ball">Best Ball</option>
+          <option value="alternate_shot">Alternate Shot</option>
+          <option value="singles">Singles</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Team Size (players per side)</label>
+        <select id="session-team-size">
+          <option value="1">1 (Singles)</option>
+          <option value="2" selected>2</option>
+          <option value="4">4</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Course</label><select id="session-course"><option value="">Loading...</option></select></div>
+      <div class="form-group"><label>Sort Order</label><input type="number" id="session-sort" value="1" min="1" /></div>
+      <div style="margin-top:16px;margin-bottom:8px;">
+        <label style="font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;letter-spacing:1px;text-transform:uppercase;color:#888;">Matchup Pairings</label>
+      </div>
+      <div id="pairings-container"></div>
+      <button class="add-pairing-btn" onclick="addPairingRow()">+ Add Matchup</button>
+      <button class="btn btn-primary mt-16" onclick="createSession()">Create Session</button>
+    </div>
+    <div class="admin-section">
+      <h3>Manage Sessions</h3>
+      <div id="admin-sessions-list"><div class="loading-state"><div class="spinner"></div>Loading...</div></div>
+    </div>
+  </div>
+</div>
+
+<nav class="tabs">
+  <button class="tab-btn active" onclick="switchTab('scoreboard')" id="tab-scoreboard">
+    <span class="tab-icon">🏆</span>Scoreboard
+  </button>
+  <button class="tab-btn" onclick="switchTab('entry')" id="tab-entry">
+    <span class="tab-icon">⛳</span>Score Entry
+  </button>
+  <button class="tab-btn" onclick="switchTab('admin')" id="tab-admin">
+    <span class="tab-icon">⚙️</span>Admin
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const SUPABASE_URL = 'https://vtnxjheizurqardgreeq.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0bnhqaGVpenVycWFyZGdyZWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNzA2MTIsImV4cCI6MjA5MzY0NjYxMn0.0tEGcXoVMZme75ryvYUjBg37r_9rsV0lLmULqm7c32w';
+  const ADMIN_PW = 'GoBlue';
+
+  let state = {
+    event: null, sessions: [], matchups: [], matchupPlayers: [],
+    holeResults: [], players: { OH: [], MI: [] }, courses: [],
+    entryMatchupId: null, entrySessionId: null, entryCourse: null,
+  };
+
+  async function api(path, opts = {}) {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        Prefer: opts.prefer || 'return=representation',
+      },
+      ...opts,
+    });
+    if (!res.ok) { const err = await res.text(); throw new Error(err); }
+    if (res.status === 204) return null;
+    return res.json();
+  }
+
+  function get(table, query) { return api(table + '?' + (query || '')); }
+  function post(table, body) { return api(table, { method: 'POST', body: JSON.stringify(body) }); }
+  function patch(table, query, body) { return api(table + '?' + query, { method: 'PATCH', body: JSON.stringify(body), prefer: 'return=representation' }); }
+
+  async function loadAll() {
+    try {
+      const events = await get('ohmi_events', 'active=eq.true&order=year.desc&limit=1');
+      state.event = events[0];
+      const [sessions, players, courses, matchups, matchupPlayers, holeResults] = await Promise.all([
+        get('ohmi_sessions', 'event_id=eq.' + state.event.id + '&order=sort_order.asc'),
+        get('ohmi_players', 'active=eq.true&order=team.asc,rank.asc'),
+        get('ohmi_courses', 'order=name.asc'),
+        get('ohmi_matchups', 'order=match_number.asc'),
+        get('ohmi_matchup_players', 'order=position.asc'),
+        get('ohmi_hole_results', 'order=hole_number.asc'),
+      ]);
+      state.sessions = sessions;
+      state.players.OH = players.filter(function(p) { return p.team === 'OH'; });
+      state.players.MI = players.filter(function(p) { return p.team === 'MI'; });
+      state.courses = courses;
+      state.matchups = matchups;
+      state.matchupPlayers = matchupPlayers;
+      state.holeResults = holeResults;
+      renderScoreboard();
+      renderAdminSessions();
+      populateEntrySessions();
+      populateCourseSelect();
+    } catch(e) {
+      console.error(e);
+      showToast('Failed to load data', 'error');
+    }
+  }
+
+  function connectRealtime() {
+    try {
+      var ws = new WebSocket(SUPABASE_URL.replace('https', 'wss') + '/realtime/v1/websocket?apikey=' + SUPABASE_KEY + '&vsn=1.0.0');
+      ws.onopen = function() {
+        ws.send(JSON.stringify({ topic: 'realtime:public:ohmi_hole_results', event: 'phx_join', payload: {}, ref: '1' }));
+        ws.send(JSON.stringify({ topic: 'realtime:public:ohmi_matchups', event: 'phx_join', payload: {}, ref: '2' }));
+        ws.send(JSON.stringify({ topic: 'realtime:public:ohmi_sessions', event: 'phx_join', payload: {}, ref: '3' }));
+      };
+      ws.onmessage = function(msg) {
+        var data = JSON.parse(msg.data);
+        if (data.event === 'INSERT' || data.event === 'UPDATE' || data.event === 'DELETE') loadAll();
+      };
+      ws.onclose = function() { setTimeout(connectRealtime, 3000); };
+    } catch(e) { setTimeout(connectRealtime, 3000); }
+  }
+
+  function getMatchResults(matchupId) {
+    return state.holeResults.filter(function(r) { return r.matchup_id === matchupId; });
+  }
+
+  // Returns status for a subset of results (one 9-hole match)
+  // Pass decidedEarly=true when back_nine_start was set before hole 10
+  function calcNineStatus(results, decidedEarly) {
+    var ohUp = 0;
+    results.forEach(function(r) {
+      if (r.winner === 'OH') ohUp++;
+      else if (r.winner === 'MI') ohUp--;
+    });
+    var holesPlayed = decidedEarly ? 9 : results.length;
+    var statusText, statusClass;
+    if (results.length === 0 || ohUp === 0) { statusText = 'TIED'; statusClass = 'tied'; }
+    else if (ohUp > 0) { statusText = ohUp + ' UP'; statusClass = 'oh-up'; }
+    else { statusText = Math.abs(ohUp) + ' UP'; statusClass = 'mi-up'; }
+    return { ohUp: ohUp, holesPlayed: holesPlayed, statusText: statusText, statusClass: statusClass };
+  }
+
+  // Split hole results into front and back nine, respecting back_nine_start if set
+  function splitNines(results, startingHole, backNineStart) {
+    var allOrdered = buildHoleOrder(startingHole, 18);
+    var frontHoles = allOrdered.slice(0, 9);
+    var defaultBackStart = allOrdered[9];
+    var backStart = parseInt(backNineStart || defaultBackStart);
+    var frontDecidedEarly = !!(backNineStart && parseInt(backNineStart) !== defaultBackStart);
+
+    // Front nine always shows all 9 holes; crossed holes = unplayed ones when decided early
+    var backStartIdx = allOrdered.indexOf(backStart);
+    var crossedFrontHoles = frontDecidedEarly
+      ? frontHoles.filter(function(h) { return allOrdered.indexOf(h) >= backStartIdx; })
+      : [];
+
+    // Back nine is always 9 holes from backStart
+    var backHoles = buildHoleOrder(backStart, 9);
+
+    var frontResults = results.filter(function(r) { return frontHoles.indexOf(r.hole_number) !== -1; });
+    var backResults = results.filter(function(r) { return backHoles.indexOf(r.hole_number) !== -1; });
+    return {
+      front: frontResults,
+      back: backResults,
+      frontHoles: frontHoles,
+      backHoles: backHoles,
+      crossedFrontHoles: crossedFrontHoles,
+      frontDecidedEarly: frontDecidedEarly
+    };
+  }
+
+  // Check if front nine is mathematically decided (up by more than holes remaining)
+  function isFrontNineDecided(frontResults, frontHoles) {
+    var ohUp = 0;
+    frontResults.forEach(function(r) {
+      if (r.winner === 'OH') ohUp++;
+      else if (r.winner === 'MI') ohUp--;
+    });
+    var holesPlayed = frontResults.length;
+    var holesLeft = 9 - holesPlayed;
+    return holesPlayed > 0 && holesLeft > 0 && Math.abs(ohUp) > holesLeft;
+  }
+
+  // Award points for a completed 9
+  function awardPoints(ohUp) {
+    if (ohUp > 0) return { oh: 1, mi: 0 };
+    if (ohUp < 0) return { oh: 0, mi: 1 };
+    return { oh: 0.5, mi: 0.5 };
+  }
+
+  function calcSessionPoints(sessionId) {
+    var sessionMatchups = state.matchups.filter(function(m) { return m.session_id === sessionId; });
+    var session = state.sessions.find(function(s) { return s.id === sessionId; });
+    var isSingles = session && session.format === 'singles';
+    var ohPts = 0, miPts = 0;
+
+    sessionMatchups.forEach(function(m) {
+      var results = getMatchResults(m.id);
+      if (isSingles) {
+        // Singles: each matchup is exactly one 9-hole match
+        var status = calcNineStatus(results);
+        if (m.status === 'closed' || status.holesPlayed === 9) {
+          var pts = awardPoints(status.ohUp);
+          ohPts += pts.oh; miPts += pts.mi;
+        }
+      } else {
+        // All other formats: two independent 9-hole matches
+        var split = splitNines(results, m.starting_hole, m.back_nine_start);
+        var frontStatus = calcNineStatus(split.front, split.frontDecidedEarly);
+        var backStatus = calcNineStatus(split.back);
+        if (frontStatus.holesPlayed === 9) {
+          var fpts = awardPoints(frontStatus.ohUp);
+          ohPts += fpts.oh; miPts += fpts.mi;
+        }
+        if (backStatus.holesPlayed === 9) {
+          var bpts = awardPoints(backStatus.ohUp);
+          ohPts += bpts.oh; miPts += bpts.mi;
+        }
+        // If matchup is manually closed, award any incomplete nines too
+        if (m.status === 'closed') {
+          if (frontStatus.holesPlayed < 9 && frontStatus.holesPlayed > 0) {
+            var fcp = awardPoints(frontStatus.ohUp);
+            ohPts += fcp.oh; miPts += fcp.mi;
+          }
+          if (backStatus.holesPlayed < 9 && backStatus.holesPlayed > 0) {
+            var bcp = awardPoints(backStatus.ohUp);
+            ohPts += bcp.oh; miPts += bcp.mi;
+          }
+        }
+      }
+    });
+    return { ohPts: ohPts, miPts: miPts };
+  }
+
+  function buildHoleOrder(startingHole, totalHoles) {
+    var holes = [];
+    for (var i = 0; i < totalHoles; i++) holes.push(((startingHole - 1 + i) % 18) + 1);
+    return holes;
+  }
+
+  function formatLabel(fmt) {
+    var map = { scramble: 'Scramble', best_ball: 'Best Ball', alternate_shot: 'Alt. Shot', singles: 'Singles' };
+    return map[fmt] || fmt;
+  }
+
+  function allPlayers() { return state.players.OH.concat(state.players.MI); }
+
+  function renderScoreboard() {
+    var totalOH = 0, totalMI = 0;
+    var rows = '';
+    state.sessions.forEach(function(session, i) {
+      var pts = calcSessionPoints(session.id);
+      totalOH += pts.ohPts; totalMI += pts.miPts;
+      var hasPoints = pts.ohPts > 0 || pts.miPts > 0;
+      rows += '<tr><td class="session-label">Rd ' + (i+1) + ' <span class="session-format-badge">' + formatLabel(session.format) + '</span></td>'
+        + '<td class="oh-col">' + (hasPoints ? pts.ohPts : '—') + '</td>'
+        + '<td class="mi-col">' + (hasPoints ? pts.miPts : '—') + '</td></tr>';
+    });
+    rows += '<tr class="total-row"><td class="session-label">Total</td><td class="oh-col">' + totalOH + '</td><td class="mi-col">' + totalMI + '</td></tr>';
+    document.getElementById('points-table-body').innerHTML = rows;
+    document.getElementById('oh-total').textContent = totalOH;
+    document.getElementById('mi-total').textContent = totalMI;
+    var total = totalOH + totalMI || 1;
+    document.getElementById('progress-oh').style.width = ((totalOH / total) * 100) + '%';
+    document.getElementById('progress-mi').style.width = ((totalMI / total) * 100) + '%';
+
+    var container = document.getElementById('sessions-container');
+    if (!state.sessions.length) { container.innerHTML = '<div class="empty-state">No sessions yet</div>'; return; }
+
+    var html = '';
+    state.sessions.forEach(function(session, i) {
+      var sessionMatchups = state.matchups.filter(function(m) { return m.session_id === session.id; });
+      var isSingles = session.format === 'singles';
+      html += '<div class="session-group"><div class="session-group-header">Round ' + (i+1) + ' — ' + session.name
+        + ' <span class="session-status-pill ' + session.status + '">' + session.status + '</span></div>';
+      if (!sessionMatchups.length) {
+        html += '<div class="empty-state" style="padding:16px">No matchups set</div>';
+      } else {
+        sessionMatchups.forEach(function(matchup, mi) {
+          var mPlayers = state.matchupPlayers.filter(function(p) { return p.matchup_id === matchup.id; });
+          var ap = allPlayers();
+          var ohNames = mPlayers.filter(function(p) { return p.team === 'OH'; }).map(function(p) { var pl = ap.find(function(x) { return x.id === p.player_id; }); return pl ? pl.name : '?'; });
+          var miNames = mPlayers.filter(function(p) { return p.team === 'MI'; }).map(function(p) { var pl = ap.find(function(x) { return x.id === p.player_id; }); return pl ? pl.name : '?'; });
+          var results = getMatchResults(matchup.id);
+
+          if (isSingles) {
+            // Singles: one 9-hole match
+            var orderedHoles = buildHoleOrder(matchup.starting_hole, 9);
+            var status = calcNineStatus(results);
+            var ohLeading = status.ohUp > 0 ? ' leading' : '';
+            var miLeading = status.ohUp < 0 ? ' leading' : '';
+            var statusLabel = matchup.status === 'closed' ? 'FINAL' : 'Thru ' + status.holesPlayed;
+            var dotsHtml = buildDotsHtml(orderedHoles, results);
+            html += buildMatchupCard(ohNames, miNames, mi, status.statusText, status.statusClass, statusLabel, ohLeading, miLeading, dotsHtml);
+          } else {
+            // Two 9-hole matches on same card
+            var split = splitNines(results, matchup.starting_hole, matchup.back_nine_start);
+            var frontStatus = calcNineStatus(split.front, split.frontDecidedEarly);
+            var backStatus = calcNineStatus(split.back);
+
+            var bothComplete = frontStatus.holesPlayed === 9 && backStatus.holesPlayed === 9;
+
+            // Top card status = current active nine (or summary when both done)
+            var ohLeading = '', miLeading = '';
+            var statusCenterHtml;
+
+            if (bothComplete) {
+              // No leading color, show two-line winner summary
+              function nineWinnerText(s) {
+                if (s.ohUp > 0) return { text: 'Ohio', color: '#ff4444' };
+                if (s.ohUp < 0) return { text: 'Michigan', color: '#4488cc' };
+                return { text: 'Tied', color: '#888' };
+              }
+              var frontWinner = nineWinnerText(frontStatus);
+              var backWinner = nineWinnerText(backStatus);
+              statusCenterHtml = '<div class="matchup-status-center">'
+                + '<div class="match-label">Match ' + (mi+1) + '</div>'
+                + '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:0.85rem;font-weight:700;color:' + frontWinner.color + ';line-height:1.4;">Front: ' + frontWinner.text + '</div>'
+                + '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:0.85rem;font-weight:700;color:' + backWinner.color + ';line-height:1.4;">Back: ' + backWinner.text + '</div>'
+                + '</div>';
+            } else {
+              var activeStatus = frontStatus.holesPlayed < 9 ? frontStatus : backStatus;
+              ohLeading = activeStatus.ohUp > 0 ? ' leading' : '';
+              miLeading = activeStatus.ohUp < 0 ? ' leading' : '';
+              var displayStatus = frontStatus.holesPlayed < 9 ? frontStatus : backStatus;
+              var displayLabel = frontStatus.holesPlayed < 9
+                ? ('Front · Thru ' + frontStatus.holesPlayed)
+                : ('Back · Thru ' + backStatus.holesPlayed);
+              if (matchup.status === 'closed') displayLabel = 'FINAL';
+              statusCenterHtml = '<div class="matchup-status-center">'
+                + '<div class="match-label">Match ' + (mi+1) + '</div>'
+                + '<div class="match-status ' + displayStatus.statusClass + '">' + displayStatus.statusText + '</div>'
+                + '<div class="holes-thru">' + displayLabel + '</div>'
+                + '</div>';
+            }
+
+            var allOrdered = buildHoleOrder(matchup.starting_hole, 18);
+            var frontHoles = split.frontHoles;
+            var backHoles = split.backHoles;
+
+            function buildNineRow(nineStatus, holes, results, label, crossedHoles) {
+              var ohWon = nineStatus.holesPlayed === 9 && nineStatus.ohUp > 0;
+              var miWon = nineStatus.holesPlayed === 9 && nineStatus.ohUp < 0;
+              var tied  = nineStatus.holesPlayed === 9 && nineStatus.ohUp === 0;
+              var leftBg  = ohWon ? '#BB0000' : '#0f0f0f';
+              var rightBg = miWon ? '#00274C' : '#0f0f0f';
+              var leftContent = ohWon
+                ? '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:1.2rem;color:#fff;line-height:1;">' + nineStatus.ohUp + ' UP</div>'
+                  + '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:0.6rem;color:rgba(255,255,255,0.65);letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Ohio</div>'
+                : '';
+              var rightContent = miWon
+                ? '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:1.2rem;color:#FFCB05;line-height:1;">' + Math.abs(nineStatus.ohUp) + ' UP</div>'
+                  + '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:0.6rem;color:rgba(255,203,5,0.75);letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Mich</div>'
+                : '';
+              var actuallyPlayed = results.filter(function(r) { return holes.indexOf(r.hole_number) !== -1; }).length;
+              var midLabel = tied ? 'TIED' : (actuallyPlayed < 9 && nineStatus.holesPlayed < 9 ? label : '');
+              var midLabelColor = tied ? '#888' : '#555';
+              return '<div style="display:flex;align-items:stretch;border-top:1px solid #222;">'
+                + '<div style="width:15%;background:' + leftBg + ';display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;min-height:52px;">' + leftContent + '</div>'
+                + '<div style="flex:1;background:#0f0f0f;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 8px;">'
+                + (midLabel ? '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:0.6rem;letter-spacing:1px;text-transform:uppercase;color:' + midLabelColor + ';margin-bottom:4px;">' + midLabel + '</div>' : '')
+                + '<div style="display:flex;justify-content:center;gap:2px;flex-wrap:nowrap;">' + buildDotsHtml(holes, results, true, crossedHoles || []) + '</div>'
+                + '</div>'
+                + '<div style="width:15%;background:' + rightBg + ';display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;min-height:52px;">' + rightContent + '</div>'
+                + '</div>';
+            }
+
+            // No crossed holes needed - frontHoles already trimmed to played holes only
+            var frontCrossed = split.crossedFrontHoles || [];
+
+            var frontNineRow = buildNineRow(frontStatus, frontHoles, results, 'Front Nine', frontCrossed);
+            var backNineRow = buildNineRow(backStatus, backHoles, results, 'Back Nine', []);
+
+            html += '<div class="matchup-card"><div class="matchup-header">'
+              + '<div class="matchup-team oh' + ohLeading + '"><div class="player-name">' + ohNames.join('<br>') + '</div></div>'
+              + statusCenterHtml
+              + '<div class="matchup-team mi' + miLeading + '"><div class="player-name">' + miNames.join('<br>') + '</div></div>'
+              + '</div>'
+              + frontNineRow
+              + backNineRow
+              + '</div>';
+          }
+        });
+      }
+      html += '</div>';
+    });
+    container.innerHTML = html;
+  }
+
+  function buildDotsHtml(holesArray, results, small, crossedHoles) {
+    var size = small ? '18px' : '22px';
+    var font = small ? '0.55rem' : '0.6rem';
+    crossedHoles = crossedHoles || [];
+    var html = '';
+    holesArray.forEach(function(h) {
+      var isCrossed = crossedHoles.indexOf(h) !== -1;
+      var dotClass = '';
+      if (!isCrossed) {
+        var result = results.find(function(r) { return r.hole_number === h; });
+        if (result && result.winner === 'OH') dotClass = 'oh';
+        else if (result && result.winner === 'MI') dotClass = 'mi';
+        else if (result && result.winner === 'halved') dotClass = 'halved';
+      }
+      if (isCrossed) dotClass = 'crossed';
+      html += '<div class="hole-dot ' + dotClass + '" style="width:' + size + ';height:' + size + ';font-size:' + font + ';">' + h + '</div>';
+    });
+    return html;
+  }
+
+  function buildMatchupCard(ohNames, miNames, mi, statusText, statusClass, statusLabel, ohLeading, miLeading, dotsHtml) {
+    return '<div class="matchup-card"><div class="matchup-header">'
+      + '<div class="matchup-team oh' + ohLeading + '"><div class="player-name">' + ohNames.join('<br>') + '</div></div>'
+      + '<div class="matchup-status-center"><div class="match-label">Match ' + (mi+1) + '</div>'
+      + '<div class="match-status ' + statusClass + '">' + statusText + '</div>'
+      + '<div class="holes-thru">' + statusLabel + '</div></div>'
+      + '<div class="matchup-team mi' + miLeading + '"><div class="player-name">' + miNames.join('<br>') + '</div></div>'
+      + '</div><div class="hole-dots">' + dotsHtml + '</div></div>';
+  }
+
+  function populateEntrySessions() {
+    var sel = document.getElementById('entry-session-select');
+    var activeSessions = state.sessions.filter(function(s) { return s.status === 'active'; });
+    if (activeSessions.length) {
+      sel.innerHTML = '<option value="">Select session...</option>' + activeSessions.map(function(s) { return '<option value="' + s.id + '">' + s.name + '</option>'; }).join('');
+    } else {
+      sel.innerHTML = '<option value="">No active sessions</option>';
+    }
+  }
+
+  document.getElementById('entry-session-select').addEventListener('change', function() {
+    state.entrySessionId = this.value;
+    populateEntryMatchups();
+    document.getElementById('entry-content').style.display = 'none';
+    document.getElementById('entry-sticky-header').classList.remove('visible');
+  });
+
+  function populateEntryMatchups() {
+    var sel = document.getElementById('entry-matchup-select');
+    if (!state.entrySessionId) { sel.innerHTML = '<option value="">Select matchup...</option>'; sel.disabled = true; return; }
+    var ap = allPlayers();
+    var sessionMatchups = state.matchups.filter(function(m) { return m.session_id === state.entrySessionId; });
+    sel.disabled = false;
+    sel.innerHTML = '<option value="">Select matchup...</option>' + sessionMatchups.map(function(m) {
+      var mPlayers = state.matchupPlayers.filter(function(p) { return p.matchup_id === m.id; });
+      var ohNames = mPlayers.filter(function(p) { return p.team === 'OH'; }).map(function(p) { var pl = ap.find(function(x) { return x.id === p.player_id; }); return pl ? pl.name : '?'; }).join(' / ');
+      var miNames = mPlayers.filter(function(p) { return p.team === 'MI'; }).map(function(p) { var pl = ap.find(function(x) { return x.id === p.player_id; }); return pl ? pl.name : '?'; }).join(' / ');
+      return '<option value="' + m.id + '">Match ' + m.match_number + ': ' + ohNames + ' vs ' + miNames + '</option>';
+    }).join('');
+  }
+
+  document.getElementById('entry-matchup-select').addEventListener('change', function() {
+    state.entryMatchupId = this.value;
+    if (!this.value) { document.getElementById('entry-content').style.display = 'none'; return; }
+    loadEntryHoles();
+  });
+
+  function loadEntryHoles() {
+    var matchup = state.matchups.find(function(m) { return m.id === state.entryMatchupId; });
+    var session = state.sessions.find(function(s) { return s.id === matchup.session_id; });
+    var course = state.courses.find(function(c) { return c.id === session.course_id; });
+    state.entryCourse = course;
+    state.entryMatchup = matchup;
+    state.entrySession = session;
+
+    // Populate sticky header
+    var ap = allPlayers();
+    var mPlayers = state.matchupPlayers.filter(function(p) { return p.matchup_id === matchup.id; });
+    var ohNames = mPlayers.filter(function(p) { return p.team === 'OH'; }).map(function(p) { var pl = ap.find(function(x) { return x.id === p.player_id; }); return pl ? pl.name.split(' ')[0] : '?'; }).join('/');
+    var miNames = mPlayers.filter(function(p) { return p.team === 'MI'; }).map(function(p) { var pl = ap.find(function(x) { return x.id === p.player_id; }); return pl ? pl.name.split(' ')[0] : '?'; }).join('/');
+    document.getElementById('sticky-round-name').textContent = session.name + ' · Match ' + matchup.match_number;
+    document.getElementById('sticky-match-name').textContent = 'OH: ' + ohNames + '  vs  MI: ' + miNames;
+    document.getElementById('entry-sticky-header').classList.add('visible');
+
+    var isSingles = session.format === 'singles';
+    var totalHoles = isSingles ? 9 : 18;
+    var orderedHoles = buildHoleOrder(matchup.starting_hole, totalHoles);
+    var results = state.holeResults.filter(function(r) { return r.matchup_id === matchup.id; });
+    document.getElementById('entry-content').style.display = 'block';
+    updateEntryStatus(results, matchup, session);
+    renderEntryHoles(orderedHoles, results, course, matchup);
+  }
+
+  function renderEntryHoles(orderedHoles, results, course, matchup) {
+    var pars = (course && course.pars) ? course.pars : [];
+    var session = state.sessions.find(function(s) { return s.id === matchup.session_id; });
+    var split = splitNines(results, matchup.starting_hole, matchup.back_nine_start);
+    var crossed = split.crossedFrontHoles || [];
+    var html = '';
+    orderedHoles.forEach(function(holeNum) {
+      if (crossed.indexOf(holeNum) !== -1) return; // skip crossed holes
+      var result = results.find(function(r) { return r.hole_number === holeNum; });
+      var par = pars[holeNum - 1] || '—';
+      var ohSel = (result && result.winner === 'OH') ? ' selected' : '';
+      var halvSel = (result && result.winner === 'halved') ? ' selected' : '';
+      var miSel = (result && result.winner === 'MI') ? ' selected' : '';
+      html += '<div class="hole-entry-card" id="hole-card-' + holeNum + '">'
+        + '<div class="hole-entry-header"><div class="hole-entry-num">Hole ' + holeNum + '</div><div class="hole-entry-par">Par ' + par + '</div></div>'
+        + '<div class="winner-btns">'
+        + '<button class="winner-btn oh-btn' + ohSel + '" onclick="recordHole(' + holeNum + ', \'OH\')">Ohio</button>'
+        + '<button class="winner-btn halved-btn' + halvSel + '" onclick="recordHole(' + holeNum + ', \'halved\')">Halved</button>'
+        + '<button class="winner-btn mi-btn' + miSel + '" onclick="recordHole(' + holeNum + ', \'MI\')">Mich</button>'
+        + '</div></div>';
+    });
+    document.getElementById('entry-holes-container').innerHTML = html;
+  }
+
+  async function recordHole(holeNum, winner) {
+    try {
+      var existing = state.holeResults.find(function(r) { return r.matchup_id === state.entryMatchupId && r.hole_number === holeNum; });
+      if (existing) {
+        await patch('ohmi_hole_results', 'id=eq.' + existing.id, { winner: winner });
+        existing.winner = winner;
+      } else {
+        var newResult = await post('ohmi_hole_results', { matchup_id: state.entryMatchupId, hole_number: holeNum, winner: winner });
+        state.holeResults.push(newResult[0]);
+      }
+      var card = document.getElementById('hole-card-' + holeNum);
+      card.querySelectorAll('.winner-btn').forEach(function(b) { b.classList.remove('selected'); });
+      var btnClass = winner === 'OH' ? '.oh-btn' : (winner === 'MI' ? '.mi-btn' : '.halved-btn');
+      card.querySelector(btnClass).classList.add('selected');
+
+      var results = state.holeResults.filter(function(r) { return r.matchup_id === state.entryMatchupId; });
+      updateEntryStatus(results, state.entryMatchup, state.entrySession);
+      renderScoreboard();
+
+      // Check if front nine just became decided early (non-singles only)
+      var isSingles = state.entrySession.format === 'singles';
+      if (!isSingles && !state.entryMatchup.back_nine_start) {
+        var allOrdered = buildHoleOrder(state.entryMatchup.starting_hole, 18);
+        var frontHoles = allOrdered.slice(0, 9);
+        var frontResults = results.filter(function(r) { return frontHoles.indexOf(r.hole_number) !== -1; });
+        if (isFrontNineDecided(frontResults, frontHoles)) {
+          showBackNinePrompt(frontResults, frontHoles, allOrdered);
+        }
+      }
+    } catch(e) { console.error(e); showToast('Failed to save', 'error'); }
+  }
+
+  function showBackNinePrompt(frontResults, frontHoles, allOrdered) {
+    // Next hole after match ended = first unplayed hole in front nine
+    var playedHoles = frontResults.map(function(r) { return r.hole_number; });
+    var nextHole = null;
+    for (var i = 0; i < frontHoles.length; i++) {
+      if (playedHoles.indexOf(frontHoles[i]) === -1) { nextHole = frontHoles[i]; break; }
+    }
+    if (!nextHole) nextHole = allOrdered[9]; // fallback
+
+    var waitHole = allOrdered[9]; // their 10th hole in play order
+
+    // Build hole options from nextHole up to waitHole
+    var holeChoices = [];
+    var h = nextHole;
+    while (h !== waitHole) {
+      holeChoices.push(h);
+      h = (h % 18) + 1;
+    }
+    holeChoices.push(waitHole);
+
+    var optionsHtml = holeChoices.map(function(h) {
+      var label = h === waitHole ? 'Wait — Hole ' + h : 'Start now — Hole ' + h;
+      return '<option value="' + h + '">' + label + '</option>';
+    }).join('');
+
+    var overlay = document.createElement('div');
+    overlay.id = 'back-nine-prompt';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;';
+    overlay.innerHTML = '<div style="background:#1a1a1a;border:1px solid #444;border-radius:12px;padding:24px;width:100%;max-width:360px;">'
+      + '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:1.6rem;letter-spacing:2px;color:#FFCB05;margin-bottom:8px;">Front Nine Decided!</div>'
+      + '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:0.9rem;color:#aaa;margin-bottom:20px;">Where does your back nine start?</div>'
+      + '<div style="position:relative;margin-bottom:16px;">'
+      + '<select id="back-nine-hole-select" style="width:100%;padding:12px 14px;background:#242424;border:1px solid #444;border-radius:8px;color:#f0f0f0;font-family:\'Barlow Condensed\',sans-serif;font-size:1rem;appearance:none;">'
+      + optionsHtml
+      + '</select>'
+      + '<div style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#888;pointer-events:none;">▾</div>'
+      + '</div>'
+      + '<button onclick="confirmBackNineStart()" style="width:100%;padding:13px;background:#FFCB05;border:none;border-radius:8px;font-family:\'Barlow Condensed\',sans-serif;font-size:1rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#111;cursor:pointer;">Confirm</button>'
+      + '</div>';
+    document.body.appendChild(overlay);
+  }
+
+  async function confirmBackNineStart() {
+    var sel = document.getElementById('back-nine-hole-select');
+    var backNineStart = parseInt(sel.value);
+    try {
+      await patch('ohmi_matchups', 'id=eq.' + state.entryMatchupId, { back_nine_start: backNineStart });
+      state.entryMatchup.back_nine_start = backNineStart;
+      // Update state.matchups too
+      var m = state.matchups.find(function(x) { return x.id === state.entryMatchupId; });
+      if (m) m.back_nine_start = backNineStart;
+      var prompt = document.getElementById('back-nine-prompt');
+      if (prompt) prompt.remove();
+      showToast('Back nine starts hole ' + backNineStart, 'success');
+      loadEntryHoles();
+      renderScoreboard();
+    } catch(e) { console.error(e); showToast('Failed to save', 'error'); }
+  }
+
+  function updateEntryStatus(results, matchup, session) {
+    var isSingles = session.format === 'singles';
+    var statusText, statusClass, thruText;
+    if (isSingles) {
+      var s = calcNineStatus(results);
+      statusText = s.statusText; statusClass = s.statusClass;
+      thruText = 'Thru ' + s.holesPlayed;
+    } else {
+      var split = splitNines(results, matchup.starting_hole, matchup.back_nine_start);
+      var activeFront = !split.frontDecidedEarly && split.front.length < 9;
+      var active = activeFront ? split.front : split.back;
+      var decidedEarly = activeFront ? false : split.frontDecidedEarly;
+      var s = calcNineStatus(active, decidedEarly);
+      statusText = s.statusText; statusClass = s.statusClass;
+      thruText = (activeFront ? 'Front' : 'Back') + ' · Thru ' + active.length;
+    }
+    var stickyVal = document.getElementById('sticky-status-value');
+    var stickyThru = document.getElementById('sticky-holes-thru');
+    if (stickyVal) { stickyVal.textContent = statusText; stickyVal.className = 'sticky-status-value ' + statusClass; }
+    if (stickyThru) stickyThru.textContent = thruText;
+  }
+
+  function checkAdminPw() {
+    var pw = document.getElementById('admin-pw-input').value;
+    if (pw === ADMIN_PW) {
+      document.getElementById('admin-password-gate').style.display = 'none';
+      document.getElementById('admin-content').style.display = 'block';
+    } else {
+      document.getElementById('admin-pw-error').textContent = 'Incorrect password';
+    }
+  }
+
+  document.getElementById('admin-pw-input').addEventListener('keydown', function(e) { if (e.key === 'Enter') checkAdminPw(); });
+
+  function populateCourseSelect() {
+    var sel = document.getElementById('session-course');
+    sel.innerHTML = state.courses.map(function(c) { return '<option value="' + c.id + '">' + c.name + '</option>'; }).join('');
+  }
+
+  var pairingCount = 0;
+
+  function addPairingRow() {
+    pairingCount++;
+    var teamSize = parseInt(document.getElementById('session-team-size').value);
+    var ohSelects = '';
+    var miSelects = '';
+    for (var i = 0; i < teamSize; i++) {
+      ohSelects += '<select class="pairing-oh-player"><option value="">OH Player ' + (i+1) + '...</option>'
+        + state.players.OH.map(function(p) { return '<option value="' + p.id + '">' + p.name + '</option>'; }).join('') + '</select>';
+      miSelects += '<select class="pairing-mi-player"><option value="">MI Player ' + (i+1) + '...</option>'
+        + state.players.MI.map(function(p) { return '<option value="' + p.id + '">' + p.name + '</option>'; }).join('') + '</select>';
+    }
+    var holeOptions = '';
+    for (var h = 1; h <= 18; h++) holeOptions += '<option value="' + h + '">Hole ' + h + '</option>';
+    var row = document.createElement('div');
+    row.className = 'pairing-builder';
+    row.innerHTML = '<h4>Match ' + pairingCount + ' <button class="remove-pairing-btn" onclick="this.closest(\'.pairing-builder\').remove()">✕</button></h4>'
+      + '<div class="pairing-teams">'
+      + '<div class="pairing-team-col oh-col"><label>Ohio</label>' + ohSelects + '</div>'
+      + '<div class="pairing-team-col mi-col"><label>Michigan</label>' + miSelects + '</div>'
+      + '</div>'
+      + '<div class="starting-hole-row"><label>Starting Hole</label><select class="pairing-start-hole">' + holeOptions + '</select></div>';
+    document.getElementById('pairings-container').appendChild(row);
+  }
+
+  document.getElementById('session-team-size').addEventListener('change', function() {
+    document.getElementById('pairings-container').innerHTML = '';
+    pairingCount = 0;
+  });
+
+  async function createSession() {
+    var name = document.getElementById('session-name').value.trim();
+    var date = document.getElementById('session-date').value;
+    var format = document.getElementById('session-format').value;
+    var teamSize = parseInt(document.getElementById('session-team-size').value);
+    var courseId = document.getElementById('session-course').value;
+    var sortOrder = parseInt(document.getElementById('session-sort').value);
+    if (!name) { showToast('Session name required', 'error'); return; }
+    try {
+      var sessionRes = await post('ohmi_sessions', {
+        event_id: state.event.id, name: name, session_date: date || null,
+        format: format, team_size: teamSize, course_id: courseId || null,
+        sort_order: sortOrder, status: 'upcoming',
+      });
+      var session = sessionRes[0];
+      var pairingRows = document.querySelectorAll('.pairing-builder');
+      for (var i = 0; i < pairingRows.length; i++) {
+        var row = pairingRows[i];
+        var startHole = parseInt(row.querySelector('.pairing-start-hole').value);
+        var matchupRes = await post('ohmi_matchups', { session_id: session.id, match_number: i+1, starting_hole: startHole, status: 'upcoming' });
+        var matchup = matchupRes[0];
+        var ohSels = row.querySelectorAll('.pairing-oh-player');
+        var miSels = row.querySelectorAll('.pairing-mi-player');
+        for (var j = 0; j < ohSels.length; j++) {
+          if (ohSels[j].value) await post('ohmi_matchup_players', { matchup_id: matchup.id, player_id: ohSels[j].value, team: 'OH', position: j+1 });
+        }
+        for (var k = 0; k < miSels.length; k++) {
+          if (miSels[k].value) await post('ohmi_matchup_players', { matchup_id: matchup.id, player_id: miSels[k].value, team: 'MI', position: k+1 });
+        }
+      }
+      showToast('Session created!', 'success');
+      document.getElementById('session-name').value = '';
+      document.getElementById('pairings-container').innerHTML = '';
+      pairingCount = 0;
+      await loadAll();
+    } catch(e) { console.error(e); showToast('Failed to create session', 'error'); }
+  }
+
+  function renderAdminSessions() {
+    var container = document.getElementById('admin-sessions-list');
+    if (!state.sessions.length) { container.innerHTML = '<div class="empty-state">No sessions yet</div>'; return; }
+    container.innerHTML = state.sessions.map(function(s) {
+      var btns = '';
+      if (s.status !== 'active') btns += '<button class="btn-sm open" onclick="setSessionStatus(\'' + s.id + '\', \'active\')">Open</button>';
+      if (s.status === 'active') btns += '<button class="btn-sm close" onclick="setSessionStatus(\'' + s.id + '\', \'closed\')">Close</button>';
+      if (s.status === 'closed') btns += '<button class="btn-sm" onclick="setSessionStatus(\'' + s.id + '\', \'upcoming\')">Reopen</button>';
+      btns += '<button class="btn-sm edit" onclick="toggleEditSession(\'' + s.id + '\')">Edit</button>';
+
+      // Build existing matchups list
+      var sessionMatchups = state.matchups.filter(function(m) { return m.session_id === s.id; });
+      var ap = allPlayers();
+      var matchupRows = sessionMatchups.map(function(m) {
+        var mPlayers = state.matchupPlayers.filter(function(p) { return p.matchup_id === m.id; });
+        var ohNames = mPlayers.filter(function(p) { return p.team === 'OH'; }).map(function(p) { var pl = ap.find(function(x) { return x.id === p.player_id; }); return pl ? pl.name : '?'; }).join(' / ');
+        var miNames = mPlayers.filter(function(p) { return p.team === 'MI'; }).map(function(p) { var pl = ap.find(function(x) { return x.id === p.player_id; }); return pl ? pl.name : '?'; }).join(' / ');
+        return '<div class="session-edit-matchup-row">'
+          + '<span>' + ohNames + ' <span style="color:#888">vs</span> ' + miNames + ' <span style="color:#888;font-size:0.75rem">(Hole ' + m.starting_hole + ')</span></span>'
+          + '<button class="btn-xs" onclick="removeMatchup(\'' + m.id + '\', \'' + s.id + '\')">Remove</button>'
+          + '</div>';
+      }).join('');
+
+      // Add matchup form for this session
+      var teamSize = s.team_size || 2;
+      var ohSels = '';
+      var miSels = '';
+      for (var i = 0; i < teamSize; i++) {
+        ohSels += '<select class="edit-oh-player-' + s.id + '" style="width:100%;padding:6px 8px;background:#1a1a1a;border:1px solid #333;border-radius:4px;color:#f0f0f0;font-family:Barlow,sans-serif;font-size:0.8rem;margin-bottom:4px;">'
+          + '<option value="">OH ' + (i+1) + '...</option>'
+          + state.players.OH.map(function(p) { return '<option value="' + p.id + '">' + p.name + '</option>'; }).join('') + '</select>';
+        miSels += '<select class="edit-mi-player-' + s.id + '" style="width:100%;padding:6px 8px;background:#1a1a1a;border:1px solid #333;border-radius:4px;color:#f0f0f0;font-family:Barlow,sans-serif;font-size:0.8rem;margin-bottom:4px;">'
+          + '<option value="">MI ' + (i+1) + '...</option>'
+          + state.players.MI.map(function(p) { return '<option value="' + p.id + '">' + p.name + '</option>'; }).join('') + '</select>';
+      }
+      var holeOptions = '';
+      for (var h = 1; h <= 18; h++) holeOptions += '<option value="' + h + '">Hole ' + h + '</option>';
+
+      var addForm = '<div style="margin-top:10px;padding-top:10px;border-top:1px solid #333;">'
+        + '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;color:#888;margin-bottom:8px;">Add Matchup</div>'
+        + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">'
+        + '<div><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:0.65rem;color:#E8E8E8;text-transform:uppercase;margin-bottom:4px;">Ohio</div>' + ohSels + '</div>'
+        + '<div><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:0.65rem;color:#FFCB05;text-transform:uppercase;margin-bottom:4px;">Michigan</div>' + miSels + '</div>'
+        + '</div>'
+        + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">'
+        + '<span style="font-family:\'Barlow Condensed\',sans-serif;font-size:0.7rem;color:#888;text-transform:uppercase;white-space:nowrap;">Starting Hole</span>'
+        + '<select id="edit-start-hole-' + s.id + '" style="flex:1;padding:6px 8px;background:#1a1a1a;border:1px solid #333;border-radius:4px;color:#f0f0f0;font-family:Barlow,sans-serif;font-size:0.8rem;">' + holeOptions + '</select>'
+        + '</div>'
+        + '<button class="btn-sm edit" style="width:100%;" onclick="addMatchupToSession(\'' + s.id + '\', ' + teamSize + ', ' + sessionMatchups.length + ')">+ Add Matchup</button>'
+        + '</div>';
+
+      return '<div class="admin-session-row" style="flex-wrap:wrap;">'
+        + '<div class="admin-session-info"><div class="admin-session-name">' + s.name + '</div><div class="admin-session-meta">' + formatLabel(s.format) + ' · ' + (s.session_date || 'No date') + '</div></div>'
+        + '<div class="admin-session-actions">' + btns + '</div>'
+        + '<div class="session-edit-panel" id="edit-panel-' + s.id + '" style="width:100%;">'
+        + (matchupRows || '<div style="color:#888;font-size:0.85rem;padding:8px 0;">No matchups yet</div>')
+        + addForm
+        + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  function toggleEditSession(sessionId) {
+    var panel = document.getElementById('edit-panel-' + sessionId);
+    if (panel.classList.contains('open')) {
+      panel.classList.remove('open');
+    } else {
+      document.querySelectorAll('.session-edit-panel').forEach(function(p) { p.classList.remove('open'); });
+      panel.classList.add('open');
+    }
+  }
+
+  async function removeMatchup(matchupId, sessionId) {
+    if (!confirm('Remove this matchup?')) return;
+    try {
+      await api('ohmi_matchup_players?matchup_id=eq.' + matchupId, { method: 'DELETE', prefer: 'return=minimal' });
+      await api('ohmi_hole_results?matchup_id=eq.' + matchupId, { method: 'DELETE', prefer: 'return=minimal' });
+      await api('ohmi_matchups?id=eq.' + matchupId, { method: 'DELETE', prefer: 'return=minimal' });
+      showToast('Matchup removed', 'success');
+      await loadAll();
+    } catch(e) { console.error(e); showToast('Failed to remove matchup', 'error'); }
+  }
+
+  async function addMatchupToSession(sessionId, teamSize, existingCount) {
+    try {
+      var ohSels = document.querySelectorAll('.edit-oh-player-' + sessionId);
+      var miSels = document.querySelectorAll('.edit-mi-player-' + sessionId);
+      var startHole = parseInt(document.getElementById('edit-start-hole-' + sessionId).value);
+      var matchupRes = await post('ohmi_matchups', { session_id: sessionId, match_number: existingCount + 1, starting_hole: startHole, status: 'upcoming' });
+      var matchup = matchupRes[0];
+      for (var j = 0; j < ohSels.length; j++) {
+        if (ohSels[j].value) await post('ohmi_matchup_players', { matchup_id: matchup.id, player_id: ohSels[j].value, team: 'OH', position: j+1 });
+      }
+      for (var k = 0; k < miSels.length; k++) {
+        if (miSels[k].value) await post('ohmi_matchup_players', { matchup_id: matchup.id, player_id: miSels[k].value, team: 'MI', position: k+1 });
+      }
+      showToast('Matchup added!', 'success');
+      await loadAll();
+      // Re-open the edit panel after reload
+      setTimeout(function() { toggleEditSession(sessionId); }, 100);
+    } catch(e) { console.error(e); showToast('Failed to add matchup', 'error'); }
+  }
+
+  async function setSessionStatus(sessionId, status) {
+    try {
+      await patch('ohmi_sessions', 'id=eq.' + sessionId, { status: status });
+      showToast('Session ' + status, 'success');
+      await loadAll();
+    } catch(e) { showToast('Failed to update session', 'error'); }
+  }
+
+  function switchTab(tab) {
+    document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
+    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.getElementById('panel-' + tab).classList.add('active');
+    document.getElementById('tab-' + tab).classList.add('active');
+  }
+
+  function showToast(msg, type) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast ' + (type || '') + ' show';
+    setTimeout(function() { t.classList.remove('show'); }, 2500);
+  }
+
+  function toggleMode() {
+    var isLight = document.body.classList.toggle('light');
+    var btn = document.getElementById('mode-toggle-btn');
+    btn.textContent = isLight ? '🌙 Dark' : '☀️ Light';
+    // Adjust MI summary label color for light mode
+    document.querySelectorAll('.nine-summary-mi').forEach(function(el) {
+      el.style.color = isLight ? '#00274C' : '#4488cc';
+    });
+    try { localStorage.setItem('ohmi-mode', isLight ? 'light' : 'dark'); } catch(e) {}
+  }
+
+  // Restore saved mode
+  try {
+    if (localStorage.getItem('ohmi-mode') === 'light') {
+      document.body.classList.add('light');
+      document.getElementById('mode-toggle-btn').textContent = '🌙 Dark';
+    }
+  } catch(e) {}
+
+  loadAll();
+  connectRealtime();
+</script>
+
+</body>
+</html>
