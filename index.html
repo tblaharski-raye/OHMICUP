@@ -799,8 +799,8 @@ body.light .mode-toggle { background: #e0e0e0; border-color: #bbb; color: #555; 
             }
 
             var allOrdered = buildHoleOrder(matchup.starting_hole, 18);
-            var frontHoles = allOrdered.slice(0, 9);
-            var backHoles = allOrdered.slice(9, 18);
+            var frontHoles = split.frontHoles;
+            var backHoles = split.backHoles;
 
             function buildNineRow(nineStatus, holes, results, label, crossedHoles) {
               var ohWon = nineStatus.holesPlayed === 9 && nineStatus.ohUp > 0;
@@ -816,7 +816,8 @@ body.light .mode-toggle { background: #e0e0e0; border-color: #bbb; color: #555; 
                 ? '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:1.2rem;color:#FFCB05;line-height:1;">' + Math.abs(nineStatus.ohUp) + ' UP</div>'
                   + '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:0.6rem;color:rgba(255,203,5,0.75);letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Mich</div>'
                 : '';
-              var midLabel = tied ? 'TIED' : (nineStatus.holesPlayed < 9 ? label : '');
+              var actuallyPlayed = results.filter(function(r) { return holes.indexOf(r.hole_number) !== -1; }).length;
+              var midLabel = tied ? 'TIED' : (actuallyPlayed < 9 && nineStatus.holesPlayed < 9 ? label : '');
               var midLabelColor = tied ? '#888' : '#555';
               return '<div style="display:flex;align-items:stretch;border-top:1px solid #222;">'
                 + '<div style="width:15%;background:' + leftBg + ';display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;min-height:52px;">' + leftContent + '</div>'
