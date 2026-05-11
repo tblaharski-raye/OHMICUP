@@ -186,7 +186,7 @@ body { background: #0f0f0f; color: #f0f0f0; font-family: ‘Barlow’, sans-seri
 .sticky-entry-bar-thru { font-family: ‘Barlow’, sans-serif; font-size: 0.65rem; color: #888; text-align: right; margin-top: 2px; }
 .sticky-back-btn { background: none; border: 1px solid #444; border-radius: 6px; color: #888; font-family: ‘Barlow Condensed’, sans-serif; font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; padding: 6px 10px; cursor: pointer; margin-right: 10px; white-space: nowrap; }
 .sticky-back-btn:active { background: #242424; }
-#panel-entry.entry-active { padding-top: 70px; }
+body.scoring-active { padding-top: 58px; }
 </style>
 
 </head>
@@ -675,7 +675,7 @@ body { background: #0f0f0f; color: #f0f0f0; font-family: ‘Barlow’, sans-seri
     populateEntryMatchups();
     document.getElementById('entry-content').style.display = 'none';
     document.getElementById('sticky-entry-bar').classList.remove('visible');
-    document.getElementById('panel-entry').classList.remove('entry-active');
+    document.body.classList.remove('scoring-active');
     document.getElementById('entry-landing').style.display = 'block';
   });
 
@@ -713,7 +713,7 @@ body { background: #0f0f0f; color: #f0f0f0; font-family: ‘Barlow’, sans-seri
     document.getElementById('sticky-bar-round').textContent = session.name + ' \u00b7 Match ' + matchup.match_number;
     document.getElementById('sticky-bar-match').textContent = 'OH: ' + ohFirst + '  vs  MI: ' + miFirst;
     document.getElementById('sticky-entry-bar').classList.add('visible');
-    document.getElementById('panel-entry').classList.add('entry-active');
+    document.body.classList.add('scoring-active');
     document.getElementById('entry-landing').style.display = 'none';
     var isSingles = session.format === 'singles';
     var totalHoles = isSingles ? 9 : 18;
@@ -726,7 +726,7 @@ body { background: #0f0f0f; color: #f0f0f0; font-family: ‘Barlow’, sans-seri
 
   function exitScoring() {
     document.getElementById('sticky-entry-bar').classList.remove('visible');
-    document.getElementById('panel-entry').classList.remove('entry-active');
+    document.body.classList.remove('scoring-active');
     document.getElementById('entry-landing').style.display = 'block';
     document.getElementById('entry-content').style.display = 'none';
     document.getElementById('entry-matchup-select').value = '';
