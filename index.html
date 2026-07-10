@@ -494,7 +494,9 @@
         var hasResult = playedNums.indexOf(h) !== -1;
         var claimedByNext = nextStartIdx !== -1 && allOrdered.indexOf(h) >= nextStartIdx;
         var afterLastPlayed = j > lastPlayedPos;
-        if (!hasResult && (afterLastPlayed || claimedByNext)) crossed.push(h);
+        // Claimed-by-next holes are always crossed (their result belongs to the next match).
+        // Unplayed tail holes are crossed too.
+        if (claimedByNext || (!hasResult && afterLastPlayed)) crossed.push(h);
       }
       return crossed;
     }
