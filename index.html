@@ -951,15 +951,20 @@
       if (isS4) {
         var sixSplit = splitSixes(results, state.entryMatchup.starting_hole, state.entryMatchup.seg2_start, state.entryMatchup.seg3_start);
         var allOrdered6 = buildHoleOrder(state.entryMatchup.starting_hole, 18);
-        // Check seg1 decided early
-        if (!state.entryMatchup.seg2_start) {
+        // seg1 is "complete" if seg2 started OR all 6 seg1 holes have results
+        var seg1Complete = !!state.entryMatchup.seg2_start || sixSplit.seg1.results.length >= 6;
+        // seg2 is "complete" if seg3 started OR all 6 seg2 holes have results
+        var seg2Complete = !!state.entryMatchup.seg3_start || sixSplit.seg2.results.length >= 6;
+
+        // Check seg1 decided early (only if seg1 not yet resolved)
+        if (!seg1Complete) {
           var s1 = sixSplit.seg1;
           if (isSixMatchDecided(s1.results, s1.holes)) {
             showSixMatchPrompt(1, s1.results, s1.holes, allOrdered6, 'seg2_start');
           }
         }
-        // Check seg2 decided early
-        if (state.entryMatchup.seg2_start && !state.entryMatchup.seg3_start) {
+        // Check seg2 decided early (seg1 resolved, seg2 not yet, seg3 not started)
+        else if (!state.entryMatchup.seg3_start && !seg2Complete) {
           var s2 = sixSplit.seg2;
           if (isSixMatchDecided(s2.results, s2.holes)) {
             showSixMatchPrompt(2, s2.results, s2.holes, allOrdered6, 'seg3_start');
