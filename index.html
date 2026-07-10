@@ -466,22 +466,52 @@
     var s3 = parseInt(seg3Start || defaultSeg3);
     var seg1Holes = allOrdered.slice(0, 6);
     var seg2Started = !!(seg2Start);
-    var seg1DecidedEarly = !!(seg2Start && seg2Start !== null && parseInt(seg2Start) !== defaultSeg2);
-    // Build seg2 holes: 6 holes from s2
-    var seg2Holes = buildHoleOrder(s2, 6);
     var seg3Started = !!(seg3Start);
-    var seg2DecidedEarly = !!(seg3Start && seg3Start !== null && parseInt(seg3Start) !== defaultSeg3);
-    // Build seg3 holes: 6 holes from s3
+    // Build seg2/seg3 holes: 6 holes from their start
+    var seg2Holes = buildHoleOrder(s2, 6);
     var seg3Holes = buildHoleOrder(s3, 6);
-    // Crossed holes = unplayed holes in each seg when decided early
-    var seg1StartIdx = allOrdered.indexOf(s2);
-    var crossed1 = seg1DecidedEarly
-      ? seg1Holes.filter(function(h) { return allOrdered.indexOf(h) >= seg1StartIdx; })
-      : [];
+
+    function resultsFor(holes) {
+      return results.filter(function(r) { return holes.indexOf(r.hole_number) !== -1; });
+    }
+
+    // Cross out holes in a block that: (a) have no result AND (b) come after the last played hole in play order.
+    // Also cross out any hole in the block claimed by the next match's start position.
+    function crossedFor(blockHoles, nextStartHole, nextStarted) {
+      if (!nextStarted) return [];
+      var crossed = [];
+      var blockRes = resultsFor(blockHoles);
+      var playedNums = blockRes.map(function(r) { return r.hole_number; });
+      // Index in allOrdered where the next match takes over (if any hole of this block is at/after it)
+      var nextStartIdx = allOrdered.indexOf(parseInt(nextStartHole));
+      // Find last played hole's position within blockHoles
+      var lastPlayedPos = -1;
+      for (var i = 0; i < blockHoles.length; i++) {
+        if (playedNums.indexOf(blockHoles[i]) !== -1) lastPlayedPos = i;
+      }
+      for (var j = 0; j < blockHoles.length; j++) {
+        var h = blockHoles[j];
+        var hasResult = playedNums.indexOf(h) !== -1;
+        var claimedByNext = nextStartIdx !== -1 && allOrdered.indexOf(h) >= nextStartIdx;
+        var afterLastPlayed = j > lastPlayedPos;
+        if (!hasResult && (afterLastPlayed || claimedByNext)) crossed.push(h);
+      }
+      return crossed;
+    }
+
+    var crossed1 = crossedFor(seg1Holes, s2, seg2Started);
+    var crossed2 = crossedFor(seg2Holes, s3, seg3Started);
+
+    function resultsExcluding(holes, crossedHoles) {
+      return results.filter(function(r) {
+        return holes.indexOf(r.hole_number) !== -1 && crossedHoles.indexOf(r.hole_number) === -1;
+      });
+    }
+
     return {
-      seg1: { holes: seg1Holes, results: results.filter(function(r) { return seg1Holes.indexOf(r.hole_number) !== -1; }), decidedEarly: seg1DecidedEarly, forceComplete: seg2Started, crossed: crossed1 },
-      seg2: { holes: seg2Holes, results: results.filter(function(r) { return seg2Holes.indexOf(r.hole_number) !== -1; }), decidedEarly: seg2DecidedEarly, forceComplete: seg3Started, crossed: [] },
-      seg3: { holes: seg3Holes, results: results.filter(function(r) { return seg3Holes.indexOf(r.hole_number) !== -1; }), decidedEarly: false, forceComplete: false, crossed: [] },
+      seg1: { holes: seg1Holes, results: resultsExcluding(seg1Holes, crossed1), forceComplete: seg2Started, crossed: crossed1 },
+      seg2: { holes: seg2Holes, results: resultsExcluding(seg2Holes, crossed2), forceComplete: seg3Started, crossed: crossed2 },
+      seg3: { holes: seg3Holes, results: resultsFor(seg3Holes), forceComplete: false, crossed: [] },
     };
   }
 
@@ -528,7 +558,7 @@
       } else if (isS4) {
         var sixSplit = splitSixes(results, m.starting_hole, m.seg2_start, m.seg3_start);
         [sixSplit.seg1, sixSplit.seg2, sixSplit.seg3].forEach(function(seg) {
-          var st = calcSegStatus(seg.results, 6, seg.decidedEarly, seg.forceComplete);
+          var st = calcSegStatus(seg.results, 6, false, seg.forceComplete);
           if (st.complete || m.status === 'closed') {
             var pts = awardPoints(st.ohUp);
             ohPts += pts.oh; miPts += pts.mi;
@@ -694,7 +724,7 @@
             var segLabels = ['Match 1', 'Match 2', 'Match 3'];
             var activeSeg = null, activeSegStatus = null;
             for (var si = 0; si < segs.length; si++) {
-              var st = calcSegStatus(segs[si].results, 6, segs[si].decidedEarly, segs[si].forceComplete);
+              var st = calcSegStatus(segs[si].results, 6, false, segs[si].forceComplete);
               if (!st.complete) { activeSeg = si; activeSegStatus = st; break; }
             }
             var allSegsComplete = activeSeg === null;
@@ -702,7 +732,7 @@
             var statusCenterHtml;
             if (allSegsComplete) {
               var lines = segs.map(function(seg, si) {
-                var w = nineWinnerText(calcSegStatus(seg.results, 6, seg.decidedEarly, seg.forceComplete));
+                var w = nineWinnerText(calcSegStatus(seg.results, 6, false, seg.forceComplete));
                 return '<div style="font-family:Barlow Condensed,sans-serif;font-size:0.8rem;font-weight:700;color:' + w.color + ';line-height:1.4;">Match ' + (si+1) + ': ' + w.text + '</div>';
               }).join('');
               statusCenterHtml = '<div class="matchup-status-center"><div class="match-label">Match ' + (mi+1) + '</div>' + lines + '</div>';
@@ -716,7 +746,7 @@
                 + '</div>';
             }
             var segRows = segs.map(function(seg, si) {
-              return buildNineRow(calcSegStatus(seg.results, 6, seg.decidedEarly, seg.forceComplete), seg.holes, results, segLabels[si], seg.crossed);
+              return buildNineRow(calcSegStatus(seg.results, 6, false, seg.forceComplete), seg.holes, results, segLabels[si], seg.crossed);
             }).join('');
             html += '<div class="matchup-card"><div class="matchup-header">'
               + '<div class="matchup-team oh' + ohLeading + '"><div class="player-name">' + ohNames.join('<br>') + '</div></div>'
@@ -1049,7 +1079,7 @@
       var segs = [sixSplit.seg1, sixSplit.seg2, sixSplit.seg3];
       var activeSeg = null, activeSegStatus = null;
       for (var si = 0; si < segs.length; si++) {
-        var st = calcSegStatus(segs[si].results, 6, segs[si].decidedEarly, segs[si].forceComplete);
+        var st = calcSegStatus(segs[si].results, 6, false, segs[si].forceComplete);
         if (!st.complete) { activeSeg = si; activeSegStatus = st; break; }
       }
       if (activeSegStatus) {
