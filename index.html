@@ -465,10 +465,12 @@
     var s2 = parseInt(seg2Start || defaultSeg2);
     var s3 = parseInt(seg3Start || defaultSeg3);
     var seg1Holes = allOrdered.slice(0, 6);
-    var seg1DecidedEarly = !!(seg2Start && parseInt(seg2Start) !== defaultSeg2);
+    var seg2Started = !!(seg2Start);
+    var seg1DecidedEarly = !!(seg2Start && seg2Start !== null && parseInt(seg2Start) !== defaultSeg2);
     // Build seg2 holes: 6 holes from s2
     var seg2Holes = buildHoleOrder(s2, 6);
-    var seg2DecidedEarly = !!(seg3Start && parseInt(seg3Start) !== defaultSeg3);
+    var seg3Started = !!(seg3Start);
+    var seg2DecidedEarly = !!(seg3Start && seg3Start !== null && parseInt(seg3Start) !== defaultSeg3);
     // Build seg3 holes: 6 holes from s3
     var seg3Holes = buildHoleOrder(s3, 6);
     // Crossed holes = unplayed holes in each seg when decided early
@@ -477,9 +479,9 @@
       ? seg1Holes.filter(function(h) { return allOrdered.indexOf(h) >= seg1StartIdx; })
       : [];
     return {
-      seg1: { holes: seg1Holes, results: results.filter(function(r) { return seg1Holes.indexOf(r.hole_number) !== -1; }), decidedEarly: seg1DecidedEarly, crossed: crossed1 },
-      seg2: { holes: seg2Holes, results: results.filter(function(r) { return seg2Holes.indexOf(r.hole_number) !== -1; }), decidedEarly: seg2DecidedEarly, crossed: [] },
-      seg3: { holes: seg3Holes, results: results.filter(function(r) { return seg3Holes.indexOf(r.hole_number) !== -1; }), decidedEarly: false, crossed: [] },
+      seg1: { holes: seg1Holes, results: results.filter(function(r) { return seg1Holes.indexOf(r.hole_number) !== -1; }), decidedEarly: seg1DecidedEarly, forceComplete: seg2Started, crossed: crossed1 },
+      seg2: { holes: seg2Holes, results: results.filter(function(r) { return seg2Holes.indexOf(r.hole_number) !== -1; }), decidedEarly: seg2DecidedEarly, forceComplete: seg3Started, crossed: [] },
+      seg3: { holes: seg3Holes, results: results.filter(function(r) { return seg3Holes.indexOf(r.hole_number) !== -1; }), decidedEarly: false, forceComplete: false, crossed: [] },
     };
   }
 
@@ -494,18 +496,19 @@
     return holesPlayed > 0 && holesLeft > 0 && Math.abs(ohUp) > holesLeft;
   }
 
-  function calcSegStatus(results, segSize, decidedEarly) {
+  function calcSegStatus(results, segSize, decidedEarly, forceComplete) {
     var ohUp = 0;
     results.forEach(function(r) {
       if (r.winner === 'OH') ohUp++;
       else if (r.winner === 'MI') ohUp--;
     });
-    var holesPlayed = decidedEarly ? segSize : results.length;
+    var holesPlayed = (decidedEarly || forceComplete) ? segSize : results.length;
+    var complete = holesPlayed === segSize;
     var statusText, statusClass;
     if (results.length === 0 || ohUp === 0) { statusText = 'TIED'; statusClass = 'tied'; }
     else if (ohUp > 0) { statusText = ohUp + ' UP'; statusClass = 'oh-up'; }
     else { statusText = Math.abs(ohUp) + ' UP'; statusClass = 'mi-up'; }
-    return { ohUp: ohUp, holesPlayed: holesPlayed, complete: holesPlayed === segSize, statusText: statusText, statusClass: statusClass };
+    return { ohUp: ohUp, holesPlayed: holesPlayed, complete: complete, statusText: statusText, statusClass: statusClass };
   }
 
   function calcSessionPoints(sessionId) {
@@ -525,7 +528,7 @@
       } else if (isS4) {
         var sixSplit = splitSixes(results, m.starting_hole, m.seg2_start, m.seg3_start);
         [sixSplit.seg1, sixSplit.seg2, sixSplit.seg3].forEach(function(seg) {
-          var st = calcSegStatus(seg.results, 6, seg.decidedEarly);
+          var st = calcSegStatus(seg.results, 6, seg.decidedEarly, seg.forceComplete);
           if (st.complete || m.status === 'closed') {
             var pts = awardPoints(st.ohUp);
             ohPts += pts.oh; miPts += pts.mi;
@@ -691,7 +694,7 @@
             var segLabels = ['Match 1', 'Match 2', 'Match 3'];
             var activeSeg = null, activeSegStatus = null;
             for (var si = 0; si < segs.length; si++) {
-              var st = calcSegStatus(segs[si].results, 6, segs[si].decidedEarly);
+              var st = calcSegStatus(segs[si].results, 6, segs[si].decidedEarly, segs[si].forceComplete);
               if (!st.complete) { activeSeg = si; activeSegStatus = st; break; }
             }
             var allSegsComplete = activeSeg === null;
@@ -699,7 +702,7 @@
             var statusCenterHtml;
             if (allSegsComplete) {
               var lines = segs.map(function(seg, si) {
-                var w = nineWinnerText(calcSegStatus(seg.results, 6, seg.decidedEarly));
+                var w = nineWinnerText(calcSegStatus(seg.results, 6, seg.decidedEarly, seg.forceComplete));
                 return '<div style="font-family:Barlow Condensed,sans-serif;font-size:0.8rem;font-weight:700;color:' + w.color + ';line-height:1.4;">Match ' + (si+1) + ': ' + w.text + '</div>';
               }).join('');
               statusCenterHtml = '<div class="matchup-status-center"><div class="match-label">Match ' + (mi+1) + '</div>' + lines + '</div>';
@@ -713,7 +716,7 @@
                 + '</div>';
             }
             var segRows = segs.map(function(seg, si) {
-              return buildNineRow(calcSegStatus(seg.results, 6, seg.decidedEarly), seg.holes, results, segLabels[si], seg.crossed);
+              return buildNineRow(calcSegStatus(seg.results, 6, seg.decidedEarly, seg.forceComplete), seg.holes, results, segLabels[si], seg.crossed);
             }).join('');
             html += '<div class="matchup-card"><div class="matchup-header">'
               + '<div class="matchup-team oh' + ohLeading + '"><div class="player-name">' + ohNames.join('<br>') + '</div></div>'
@@ -1046,7 +1049,7 @@
       var segs = [sixSplit.seg1, sixSplit.seg2, sixSplit.seg3];
       var activeSeg = null, activeSegStatus = null;
       for (var si = 0; si < segs.length; si++) {
-        var st = calcSegStatus(segs[si].results, 6, segs[si].decidedEarly);
+        var st = calcSegStatus(segs[si].results, 6, segs[si].decidedEarly, segs[si].forceComplete);
         if (!st.complete) { activeSeg = si; activeSegStatus = st; break; }
       }
       if (activeSegStatus) {
