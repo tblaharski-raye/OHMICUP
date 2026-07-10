@@ -418,7 +418,7 @@
     if (results.length === 0 || ohUp === 0) { statusText = 'TIED'; statusClass = 'tied'; }
     else if (ohUp > 0) { statusText = ohUp + ' UP'; statusClass = 'oh-up'; }
     else { statusText = Math.abs(ohUp) + ' UP'; statusClass = 'mi-up'; }
-    return { ohUp: ohUp, holesPlayed: holesPlayed, statusText: statusText, statusClass: statusClass };
+    return { ohUp: ohUp, holesPlayed: holesPlayed, complete: holesPlayed === 9, statusText: statusText, statusClass: statusClass };
   }
 
   function splitNines(results, startingHole, backNineStart) {
@@ -569,9 +569,10 @@
   // Top-level helper — not inside any loop
   function buildNineRow(nineStatus, holes, results, label, crossedHoles) {
     crossedHoles = crossedHoles || [];
-    var ohWon = nineStatus.holesPlayed === 9 && nineStatus.ohUp > 0;
-    var miWon = nineStatus.holesPlayed === 9 && nineStatus.ohUp < 0;
-    var tied  = nineStatus.holesPlayed === 9 && nineStatus.ohUp === 0;
+    var complete = nineStatus.complete !== undefined ? nineStatus.complete : (nineStatus.holesPlayed === holes.length);
+    var ohWon = complete && nineStatus.ohUp > 0;
+    var miWon = complete && nineStatus.ohUp < 0;
+    var tied  = complete && nineStatus.ohUp === 0;
     var leftBg  = ohWon ? '#BB0000' : '#0f0f0f';
     var rightBg = miWon ? '#00274C' : '#0f0f0f';
     var ff1 = 'Bebas Neue';
