@@ -441,11 +441,22 @@
       else if (r.winner === 'MI') ohUp--;
     });
     var holesPlayed = decidedEarly ? 9 : results.length;
+    var complete = holesPlayed === 9;
     var statusText, statusClass;
     if (results.length === 0 || ohUp === 0) { statusText = 'TIED'; statusClass = 'tied'; }
-    else if (ohUp > 0) { statusText = ohUp + ' UP'; statusClass = 'oh-up'; }
-    else { statusText = Math.abs(ohUp) + ' UP'; statusClass = 'mi-up'; }
-    return { ohUp: ohUp, holesPlayed: holesPlayed, complete: holesPlayed === 9, statusText: statusText, statusClass: statusClass };
+    else {
+      var margin = Math.abs(ohUp);
+      // If the match completed early (fewer holes actually played than the 9 total),
+      // show standard match-play "X&Y" notation. Otherwise (went the distance) show "X UP".
+      if (complete && results.length < 9) {
+        var holesRemaining = 9 - results.length;
+        statusText = margin + '&' + holesRemaining;
+      } else {
+        statusText = margin + ' UP';
+      }
+      statusClass = ohUp > 0 ? 'oh-up' : 'mi-up';
+    }
+    return { ohUp: ohUp, holesPlayed: holesPlayed, complete: complete, statusText: statusText, statusClass: statusClass };
   }
 
   // For singles: returns which of the 9 played holes are crossed out (after the match was decided)
@@ -515,7 +526,9 @@
       ? frontHoles.filter(function(h) { return allOrdered.indexOf(h) >= backStartIdx; })
       : [];
     var backHoles = buildHoleOrder(backStart, 9);
-    var frontResults = results.filter(function(r) { return frontHoles.indexOf(r.hole_number) !== -1; });
+    var frontResults = results.filter(function(r) {
+      return frontHoles.indexOf(r.hole_number) !== -1 && crossedFrontHoles.indexOf(r.hole_number) === -1;
+    });
     var backResults = results.filter(function(r) { return backHoles.indexOf(r.hole_number) !== -1; });
     // Back nine early-decision (manually confirmed, no next match to advance to)
     var backDecidedInfo = findDecidedPoint(backHoles, backResults);
@@ -635,8 +648,16 @@
     var complete = holesPlayed === segSize;
     var statusText, statusClass;
     if (results.length === 0 || ohUp === 0) { statusText = 'TIED'; statusClass = 'tied'; }
-    else if (ohUp > 0) { statusText = ohUp + ' UP'; statusClass = 'oh-up'; }
-    else { statusText = Math.abs(ohUp) + ' UP'; statusClass = 'mi-up'; }
+    else {
+      var margin = Math.abs(ohUp);
+      if (complete && results.length < segSize) {
+        var holesRemaining = segSize - results.length;
+        statusText = margin + '&' + holesRemaining;
+      } else {
+        statusText = margin + ' UP';
+      }
+      statusClass = ohUp > 0 ? 'oh-up' : 'mi-up';
+    }
     return { ohUp: ohUp, holesPlayed: holesPlayed, complete: complete, statusText: statusText, statusClass: statusClass };
   }
 
@@ -711,11 +732,11 @@
     var ff1 = 'Bebas Neue';
     var ff2 = 'Barlow Condensed';
     var leftContent = ohWon
-      ? '<div style="font-family:' + ff1 + ',sans-serif;font-size:1.2rem;color:#fff;line-height:1;">' + nineStatus.ohUp + ' UP</div>'
+      ? '<div style="font-family:' + ff1 + ',sans-serif;font-size:1.2rem;color:#fff;line-height:1;">' + nineStatus.statusText + '</div>'
         + '<div style="font-family:' + ff2 + ',sans-serif;font-size:0.6rem;color:rgba(255,255,255,0.65);letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Ohio</div>'
       : '';
     var rightContent = miWon
-      ? '<div style="font-family:' + ff1 + ',sans-serif;font-size:1.2rem;color:#FFCB05;line-height:1;">' + Math.abs(nineStatus.ohUp) + ' UP</div>'
+      ? '<div style="font-family:' + ff1 + ',sans-serif;font-size:1.2rem;color:#FFCB05;line-height:1;">' + nineStatus.statusText + '</div>'
         + '<div style="font-family:' + ff2 + ',sans-serif;font-size:0.6rem;color:rgba(255,203,5,0.75);letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Mich</div>'
       : '';
     var segSize = holes.length;
