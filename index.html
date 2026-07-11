@@ -1122,18 +1122,24 @@
     var pars = (course && course.pars) ? course.pars : [];
     var session = state.sessions.find(function(s) { return s.id === matchup.session_id; });
     var crossed = [];
+    var firstBlockLen = 0;
     if (isScrambleFour(session)) {
       var sixSplit = splitSixes(results, matchup.starting_hole, matchup.seg2_start, matchup.seg3_start);
       crossed = sixSplit.seg1.crossed.concat(sixSplit.seg2.crossed);
+      firstBlockLen = 12; // seg1 (6) + seg2 (6) -- seg3 never has crossed holes
     } else if (session.format === 'singles') {
       crossed = singlesInfo(results, matchup.starting_hole).crossed;
+      firstBlockLen = orderedHoles.length; // singles has no later block to worry about
     } else {
       var split = splitNines(results, matchup.starting_hole, matchup.back_nine_start);
       crossed = split.crossedFrontHoles || [];
+      firstBlockLen = 9; // front nine only -- back nine never has crossed holes
     }
     var html = '';
-    orderedHoles.forEach(function(holeNum) {
-      if (crossed.indexOf(holeNum) !== -1) return;
+    orderedHoles.forEach(function(holeNum, idx) {
+      // Only skip a hole if it's crossed AND it falls within the block where crossing applies
+      // (prevents a hole number that legitimately repeats in a later block from being skipped too)
+      if (idx < firstBlockLen && crossed.indexOf(holeNum) !== -1) return;
       var result = results.find(function(r) { return r.hole_number === holeNum; });
       var par = pars[holeNum - 1] || '—';
       var ohSel = (result && result.winner === 'OH') ? ' selected' : '';
