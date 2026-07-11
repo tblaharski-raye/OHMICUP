@@ -1084,8 +1084,23 @@
     document.body.classList.add('scoring-active');
     document.getElementById('entry-landing').style.display = 'none';
     var isSingles = session.format === 'singles';
-    var totalHoles = isSingles ? 9 : 18;
-    var orderedHoles = buildHoleOrder(matchup.starting_hole, totalHoles);
+    var orderedHoles;
+    if (isSingles) {
+      orderedHoles = buildHoleOrder(matchup.starting_hole, 9);
+    } else if (isScrambleFour(session)) {
+      // seg1 (6) + seg2 (from seg2_start or default) + seg3 (from seg3_start or default)
+      var allOrd = buildHoleOrder(matchup.starting_hole, 18);
+      var s2 = parseInt(matchup.seg2_start || allOrd[6]);
+      var s3 = parseInt(matchup.seg3_start || allOrd[12]);
+      orderedHoles = allOrd.slice(0, 6)
+        .concat(buildHoleOrder(s2, 6))
+        .concat(buildHoleOrder(s3, 6));
+    } else {
+      // front nine (9) + back nine (from back_nine_start or default)
+      var allOrd2 = buildHoleOrder(matchup.starting_hole, 18);
+      var bStart = parseInt(matchup.back_nine_start || allOrd2[9]);
+      orderedHoles = allOrd2.slice(0, 9).concat(buildHoleOrder(bStart, 9));
+    }
     var results = state.holeResults.filter(function(r) { return r.matchup_id === matchup.id; });
     document.getElementById('entry-content').style.display = 'block';
     updateEntryStatus(results, matchup, session);
@@ -1109,7 +1124,7 @@
     var crossed = [];
     if (isScrambleFour(session)) {
       var sixSplit = splitSixes(results, matchup.starting_hole, matchup.seg2_start, matchup.seg3_start);
-      crossed = sixSplit.seg1.crossed;
+      crossed = sixSplit.seg1.crossed.concat(sixSplit.seg2.crossed);
     } else if (session.format === 'singles') {
       crossed = singlesInfo(results, matchup.starting_hole).crossed;
     } else {
